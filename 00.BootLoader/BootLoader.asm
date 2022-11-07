@@ -73,10 +73,11 @@ READDATA:
     add si, 0x0020
 
     mov es, si
-    mov al, byte [SECTORNUMBER]
+
+    mov al, byte [ SECTORNUMBER ]
     add al, 0x01
-    mov byte [SECTORNUMBER ], al
-    cmp al, 19
+    mov byte [ SECTORNUMBER ], al
+    cmp al, 37
     jl READDATA
 
     xor byte [ HEADNUMBER ], 0x01
@@ -85,7 +86,7 @@ READDATA:
     cmp byte [ HEADNUMBER ], 0x00
     jne READDATA
 
-    add byte [ TRACKNUMBER], 0x01
+    add byte [ TRACKNUMBER ], 0x01
     jmp READDATA
 
 READEND:
@@ -153,12 +154,13 @@ PRINTMESSAGE:
     pop si
     pop es
     pop bp
+    ret
 
 MESSAGE1: db 'MINT64 OS Boot Loader Start~!! by jjangu', 0
 
-DISKERRORMESSAGE: db 'DISK Error~!', 0
-IMAGELOADINGMESSAGE: db 'OS Image Loading...', 0
-LOADINGCOMPLETEMESSAGE: db 'Complete~!!', 0
+DISKERRORMESSAGE: db 'DISK Error!!', 0
+IMAGELOADINGMESSAGE: db 'OS Image Loading.....', 0
+LOADINGCOMPLETEMESSAGE: db 'Complete!!!!', 0
 
 SECTORNUMBER: db 0x02
 HEADNUMBER: db 0x00
