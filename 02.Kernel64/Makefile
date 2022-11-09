@@ -40,7 +40,7 @@ $(ENTRYPOINTOBJECTFILE): $(ENTRYPOINTSOURCEFILE)
 	$(GCC64) -c $<
 
 %.o: ../$(SOURCEDIRECTORY)/%.asm
-	$(NASM64) -f elf32 -o $@ $<
+	$(NASM64) -o $@ $<
 
 InternalDependency:
 	$(GCC64) -MM $(CSOURCEFILES) > Dependancy.dep
