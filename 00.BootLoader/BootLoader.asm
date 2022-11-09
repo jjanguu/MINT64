@@ -1,3 +1,7 @@
+;부트로더
+;disk 이미지를 0x10000에 로드함
+
+
 [ORG 0X00]
 [BITS 16]
 
@@ -5,7 +9,8 @@ SECTION .text
 
 jmp 0x07C0:START
 
-TOTALSECTORCOUNT: dw 2
+TOTALSECTORCOUNT: dw 0x02
+KERNEL32SECTORCOUNT dw 0x02
 
 START:
     mov ax, 0x07C0
@@ -156,11 +161,11 @@ PRINTMESSAGE:
     pop bp
     ret
 
-MESSAGE1: db 'MINT64 OS Boot Loader Start~!! by jjangu', 0
+MESSAGE1: db 'MINT64 OS Boot Loader Start by jjangu', 0
 
 DISKERRORMESSAGE: db 'DISK Error!!', 0
 IMAGELOADINGMESSAGE: db 'OS Image Loading.....', 0
-LOADINGCOMPLETEMESSAGE: db 'Complete!!!!', 0
+LOADINGCOMPLETEMESSAGE: db 'Complete', 0
 
 SECTORNUMBER: db 0x02
 HEADNUMBER: db 0x00

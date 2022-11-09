@@ -1,3 +1,8 @@
+;보호모드 Entry Point
+;A20 게이트 활성화
+;GDT 구성
+;보호모드 진입
+
 [ORG 0x00]
 [BITS 16]
 
@@ -143,6 +148,6 @@ GDT:
 
 GDTEND:
 
-SWITCHSUCCESSMESSAGE: db 'Switch To Protected Mode Success~!!', 0
+SWITCHSUCCESSMESSAGE: db 'Switch To Protected Mode Success', 0
 
 times 512 - ( $ - $$ ) db 0x00
