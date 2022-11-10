@@ -5,6 +5,9 @@
 #include "Page.h"
 #include "ModeSwitch.h"
 
+#define PRINT_PASS(line) kPrintString(45, line, "Pass");
+#define PRINT_FAIL(line) kPrintString(45, line, "Fail");
+
 void kPrintString( int iX, int iY, const char* pcString );
 BOOL kInitializeKernel64Area();
 BOOL kIsMemoryEnough();
@@ -19,26 +22,26 @@ void Main( void ){
     kPrintString(0, 4, "Minimum Memory Size Check...................[    ]");
 
     if(kIsMemoryEnough() == FALSE){
-        kPrintString(45, 4, "Fail");
+        PRINT_FAIL(4)
         kPrintString(0, 5, "Not Enough Memory MINT64 OS Requires Over 64Mbyte Mem");
         while(1);
     } else{
-        kPrintString(45, 4,"Pass");
+        PRINT_PASS(4)
     }
 
     kPrintString(0, 5, "IA-32e Kernel Area Initialize...............[    ]");
 
     if(kInitializeKernel64Area() == FALSE){
-        kPrintString(45, 5, "Fail");
+        PRINT_FAIL(5)
         kPrintString(0, 6, "Kernel Area Initialization Fail");
         while(1);
     }
 
-    kPrintString(45, 5, "Pass");
+    PRINT_PASS(5)
 
     kPrintString(0, 6, "IA-32e Page Tables Initialize...............[    ]");
     kInitializePageTables();
-    kPrintString(45, 6, "Pass");
+    PRINT_PASS(6)
 
     kReadCPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
     *(DWORD*)vcVendorString = dwEBX;
@@ -50,16 +53,16 @@ void Main( void ){
     kReadCPUID(0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX);
     kPrintString( 0, 8, "64bit Mode Support Check....................[    ]" );
     if(dwEDX & (1<<29)){
-        kPrintString(45, 8, "Pass");
+        PRINT_PASS(8)
     } else{
-        kPrintString(45, 8, "Fail");
+        PRINT_FAIL(8)
         kPrintString(0, 9, "This processor does not support 64bit mode");
         while(1);
     }
 
     kPrintString( 0, 9, "Copy IA-32e Kernel To 2M Address............[    ]");
     kCopyKernel64ImageTo2Mbyte();
-    kPrintString(45, 9, "Pass");
+    PRINT_PASS(9)
 
     kPrintString(0, 9, "Switch To IA-32e Mode");
     kSwitchAndExecute64bitKernel();
