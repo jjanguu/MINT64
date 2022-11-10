@@ -1,6 +1,7 @@
 #include "Types.h"
 #include "Keyboard.h"
 #include "Descriptor.h"
+#include "PIC.h"
 
 #define PRINT_PASS(line) kPrintString(45, line, "Pass");
 #define PRINT_FAIL(line) kPrintString(45, line, "Fail");
@@ -39,7 +40,13 @@ void Main( void ){
         PRINT_FAIL(15)
         while (1);
     }
-    
+
+    kPrintString( 0, 16, "PIC Controller And Interrupt Initialize.....[    ]");
+    kInitializePIC();
+    kMaskPICInterrupt(0);
+    kEnableInterrupt();
+    PRINT_PASS(16);
+
     while(1){
         if(kIsOutputBufferFull()){
 
@@ -47,7 +54,7 @@ void Main( void ){
 
             if(kConvertScanCodeToASCIICode(bTemp, &(vcTemp[0]), &bFlags)){
                 if(bFlags & KEY_FLAGS_DOWN)
-                    kPrintString(i++, 16, vcTemp);
+                    kPrintString(i++, 17, vcTemp);
                     if(vcTemp[0] == '0') 
                         bTemp = bTemp/0;
             }
