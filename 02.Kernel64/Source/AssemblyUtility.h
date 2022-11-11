@@ -1,5 +1,4 @@
-#ifndef __ASSEMBLYUTILITY_H__
-#define __ASSEMBLYUTILITY_H__
+#pragma once
 
 #include "Types.h"
 
@@ -11,5 +10,3 @@ void kLoadIDTR(QWORD qwIDTRAddress);
 void kEnableInterrupt();
 void kDisableInterrupt();
 QWORD kReadRFLAGS();
-
-#endif /*__ASSEMBLYUTILITY_H__*/

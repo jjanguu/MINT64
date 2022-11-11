@@ -1,5 +1,4 @@
-#ifndef __DESCRIPTOR_H__
-#define __DESCRIPTOR_H__
+#pragma once
 
 #include "Types.h"
 
@@ -121,5 +120,3 @@ void kInitializeTSSSegment(TSSSEGMENT* pstTSS);
 void kInitializeIDTTables();
 void kSetIDTEntry(IDTENTRY* pstEntry, void* pvHandler, WORD wSelector, BYTE bIST, BYTE bFlags, BYTE bType);
 void kDummyHandler();
-
-#endif
