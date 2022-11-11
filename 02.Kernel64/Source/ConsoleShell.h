@@ -3,7 +3,7 @@
 #include "Types.h"
 
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT 300
-#define CONSOLESHELL_PROMPTMESSAGE         "jjangu>"
+#define CONSOLESHELL_PROMPTMESSAGE         "jjangu> "
 
 typedef void (* CommandFunction)(const char* pcParameter);
 
