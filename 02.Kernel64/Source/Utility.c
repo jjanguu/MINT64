@@ -97,6 +97,7 @@ QWORD kHexStringToQword(const char* pcBuffer){
     int i;
 
     for(i=0; pcBuffer[i] != '\0'; i++){
+        qwValue *= 16;
         if(('A' <= pcBuffer[i]) && (pcBuffer[i] <= 'Z'))
             qwValue += (pcBuffer[i] - 'A') + 10;
         else if(('a' <= pcBuffer[i]) && (pcBuffer[i] <= 'z'))

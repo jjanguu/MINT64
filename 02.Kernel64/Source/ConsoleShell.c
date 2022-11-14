@@ -2,6 +2,9 @@
 #include "Console.h"
 #include "Keyboard.h"
 #include "Utility.h"
+#include "PIT.h"
+#include "RTC.h"
+#include "AssemblyUtility.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[]={
     { "help", "Show Help", kHelp },
@@ -9,6 +12,12 @@ SHELLCOMMANDENTRY gs_vstCommandTable[]={
     { "totalram", "Show Total RAM Size", kShowTotalRAMSize },
     { "strtod", "String To Decial/Hex Convert", kStringToDecimalHexTest },
     { "shutdown", "Shutdown And Reboot OS", kShutdown },
+    { "settimer", "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)", kSetTimer },
+    { "wait", "Wait ms Using PIT, ex)wait 100(ms)", kWaitUsingPIT },
+    { "rdtsc", "Read Time Stamp Counter", kReadTimeStampCounter },
+    { "cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed },
+    { "date", "Show Date And Time", kShowDateAndTime },
+    {"createtask", "Create Task", kCreateTestTask },
 };
 
 void kStartConsoleShell(){
@@ -167,10 +176,131 @@ void kStringToDecimalHexTest(const char* pcParameterBuffer){
     }
 }
 
-void kShutdown(const char* pcParamegerBuffer){
+void kShutdown(const char* pcParameterBuffer){
     kPrintf("System Shutdown Start\n");
 
     kPrintf("Press Any Key To Reboot");
     kGetCh();
     kReboot();
+}
+
+void kSetTimer(const char* pcParameterBuffer){
+    char vcParameter[100];
+    PARAMETERLIST stList;
+    long lValue;
+    BOOL bPeriodic;
+
+    kInitializeParameter(&stList, pcParameterBuffer);
+
+    if(kGetNextParameter(&stList, vcParameter) == 0){
+        kPrintf("ex)settimer 10(ms 1(periodic)\n");
+        return ;
+    }
+    lValue = kAToI(vcParameter, 10);
+
+    if(kGetNextParameter(&stList, vcParameter) == 0){
+        kPrintf("ex)settimer 10(ms) 1(periodic)\n");
+        return ;
+    }
+    bPeriodic = kAToI(vcParameter, 10);
+
+    kInitializePIT(MSTOCOUNT(lValue), bPeriodic);
+    kPrintf("Time = %d ms, Periodic = %d Change Complete\n", lValue, bPeriodic);
+}
+
+void kWaitUsingPIT(const char* pcParameterBuffer){
+    char vcParameter[100];
+    int iLength;
+    PARAMETERLIST stList;
+    long lMillisecond;
+    int i;
+
+    kInitializeParameter(&stList, pcParameterBuffer);
+    if(kGetNextParameter(&stList, vcParameter) == 0){
+        kPrintf("ex)wait 100(ms)\n");
+        return ;
+    }
+
+    lMillisecond = kAToI(pcParameterBuffer, 10);
+    kPrintf("%d ms Sleep Start...\n", lMillisecond);
+
+    kDisableInterrupt();
+    for(i=0; i<lMillisecond/30; i++){
+        kWaitUsingDirectPIT(MSTOCOUNT(30));
+    }
+    kWaitUsingDirectPIT(MSTOCOUNT(lMillisecond % 30));
+    kEnableInterrupt();
+    kPrintf("%d ms Sleep Complete\n", lMillisecond);
+
+    kInitializePIT(MSTOCOUNT(1), TRUE);
+}
+
+void kReadTimeStampCounter(const char* pcParameterBuffer){
+    QWORD qwTSC;
+
+    qwTSC = kReadTSC();
+    kPrintf("Time Stamp counter = %q\n", qwTSC);
+}
+
+void kMeasureProcessorSpeed(const char* pcParameterBuffer){
+    int i;
+    QWORD qwLastTSC, qwTotalTSC = 0;
+
+    kPrintf("Now Measuring.");
+
+    kDisableInterrupt();
+    for(i=0; i<200; i++){
+        qwLastTSC = kReadTSC();
+        kWaitUsingDirectPIT(MSTOCOUNT(50));
+        qwTotalTSC += kReadTSC() - qwLastTSC;
+
+        kPrintf(".");
+    }
+
+    kInitializePIT(MSTOCOUNT(1),TRUE);
+    kEnableInterrupt();
+
+    kPrintf("\nCPU Speed = %d MHz\n", qwTotalTSC/10/1000/1000);
+}
+
+void kShowDateAndTime(const char* pcParameterBuffer){
+    BYTE bSecond, bMinute, bHour;
+    BYTE bDayOfWeek, bDayOfMonth, bMonth;
+    WORD wYear;
+
+    kReadRTCTime(&bHour, &bMinute, &bSecond);
+    kReadRTCDate(&wYear, &bMonth, &bDayOfMonth, &bDayOfWeek);
+
+    kPrintf("Data: %d/%d/%d %s, ", wYear, bMonth, bDayOfMonth, kConvertDayOfWeekToString(bDayOfWeek));
+    kPrintf("Time: %d:%d:%d\n",bHour, bMinute, bSecond);
+}
+
+static TCB gs_vstTask[2] = {0, };
+static QWORD gs_vstStack[1024] = {0, };
+
+void kTestTask(){
+    int i = 0;
+
+    while(1){
+        kPrintf("[%d] This message is from kTestTask. Press any key to switch kConsoleShell\n", i++ );
+
+        kGetCh();
+
+        kSwitchContext(&(gs_vstTask[1].stContext), &(gs_vstTask[0].stContext));
+    }
+}
+
+void kCreateTestTask(const char* pcParameterBuffer){
+    KEYDATA stData;
+    int i =0;
+
+    kSetUpTask(&(gs_vstTask[1]), 1, 0, (QWORD)kTestTask, &(gs_vstStack), sizeof(gs_vstStack));
+
+    while(1){
+        kPrintf("[%d] This message is from kConsoleShell. Press any key to switch kTestTask\n",i++);
+        if(kGetCh() == 'q')
+            break;
+        
+        kSwitchContext(&(gs_vstTask[0].stContext), &(gs_vstTask[1].stContext));
+    }
 }
