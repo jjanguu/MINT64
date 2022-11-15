@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include "Console.h"
 #include "Keyboard.h"
+#include "Task.h"
 
 CONSOLEMANAGER gs_stConsoleManager = {0, };
 
@@ -91,8 +92,8 @@ BYTE kGetCh(){
     KEYDATA stData;
 
     while(1){
-        while(!kGetKeyFromKeyQueue(&stData)){
-            ;
+        while(kGetKeyFromKeyQueue(&stData) == FALSE){
+            kSchedule();
         }
         if(stData.bFlags & KEY_FLAGS_DOWN)
             return stData.bASCIICode;
