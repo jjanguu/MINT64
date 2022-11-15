@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.h"
+#include "List.h"
 
 #define TASK_REGISTERCOUNT (5 + 19)
 #define TASK_REGISTERSIZE  8
@@ -30,6 +31,16 @@
 #define TASK_RSPOFFSET 22
 #define TASK_SSOFFSET 23
 
+#define TASK_TCBPOOLADDRESS   0x800000
+#define TASK_MAXCOUNT         1024
+
+#define TASK_STACKPOOLADDRESS (TASK_TCBPOOLADDRESS + sizeof(TCB) * TASK_MAXCOUNT)
+#define TASK_STACKSIZE        8192
+
+#define TASK_INVALIDID        0xFFFFFFFFFFFFFFFF
+
+#define TASK_PROCESSORTIME    5
+
 #pragma pack(push, 1)
 
 typedef struct kContextStruct
@@ -39,15 +50,47 @@ typedef struct kContextStruct
 
 typedef struct kTaskControlBlockStruct
 {
-    CONTEXT stContext;
+    LISTLINK stLink;
 
-    QWORD qwID;
     QWORD qwFlags;
+
+    CONTEXT stContext;
 
     void* pvStackAddress;
     QWORD qwStackSize;
 }TCB;
 
-#pragma pack(pop)
+typedef struct kTCBPoolManagerStruct
+{
+    TCB* pstStartAddress;
+    int iMaxCount;
+    int iUseCount;
 
-void kSetUpTask(TCB* pstTCB, QWORD qwID, QWORD qwFlags, QWORD qwEntryPointAddress, void* pvStackAddress, QWORD qwStackSize);
+    int iAllocatedCount;
+}TCBPOOLMANAGER;
+
+typedef struct kSchedulerStruct
+{
+    TCB* pstRunningTask;
+
+    int iProcessorTime;
+
+    LIST stReadyList;
+}SCHEDULER;
+
+#pragma pack(pop)
+void kInitializeTCBPool( void);
+TCB* kAllocateTCB( void);
+void kFreeTCB( QWORD qwID);
+TCB* kCreateTask( QWORD qwFlags, QWORD qwEntryPointAddress);
+void kSetUpTask(TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void* pvStackAddress, QWORD qwStackSize);
+
+void kInitializeScheduler( void );
+void kSetRunningTask( TCB* pstTask );
+TCB* kGetRunningTask( void );
+TCB* kGetNextTaskToRun( void );
+void kAddTaskToReadyList( TCB* pstTask );
+void kSchedule( void );
+BOOL kScheduleInInterrupt( void );
+void kDecreaseProcessorTime( void );
+BOOL kIsProcessorTimeExpired( void );

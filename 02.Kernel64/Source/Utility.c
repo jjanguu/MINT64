@@ -1,6 +1,8 @@
 #include "Utility.h"
 #include "AssemblyUtility.h"
 
+volatile QWORD g_qwTickCount = 0;
+
 void kMemSet(void* pvDestination, BYTE bData, int iSize){
     int i;
     for(i=0; i<iSize; i++){

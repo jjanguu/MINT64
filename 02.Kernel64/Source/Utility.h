@@ -3,6 +3,9 @@
 #include <stdarg.h>
 #include "Types.h"
 
+extern volatile QWORD g_qwTickCount;
+QWORD kGetTickCount();
+
 void kMemSet(void* pvDestination, BYTE bData, int iSize);
 int kMemCpy(void* pvDestination, const void* pbSource, int iSize);
 int kMemCmp(const void* pvDestination, const void* pvSource, int iSize);
