@@ -6,6 +6,8 @@
 #include "ConsoleShell.h"
 #include "Task.h"
 #include "PIT.h"
+#include "AssemblyUtility.h"
+#include "Utility.h"
 
 void kPrintString( int iX, int iY, const char* pcString );
 

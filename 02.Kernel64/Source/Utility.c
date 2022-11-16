@@ -55,7 +55,7 @@ int kStrLen(const char* pcBuffer){
     return i;
 }
 
-static gs_qwTotalRAMMBSize = 0;
+static QWORD gs_qwTotalRAMMBSize = 0;
 
 void kCheckTotalRAMSize(){
     DWORD* pdwCurrentAddress;

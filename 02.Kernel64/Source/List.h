@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Types.h"ntf
+#include "Types.h"
 
 #pragma pack(push, 1)
 

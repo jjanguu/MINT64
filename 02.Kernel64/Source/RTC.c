@@ -1,4 +1,5 @@
 #include "RTC.h"
+#include "AssemblyUtility.h"
 
 void kReadRTCTime(BYTE* pbHour, BYTE* pbMinute, BYTE* pbSecond){
     BYTE bData;

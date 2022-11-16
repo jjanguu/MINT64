@@ -7,6 +7,8 @@
 
 typedef void (* CommandFunction)(const char* pcParameter);
 
+static void kTestMutex(const char* pcParameterBuffer);
+
 #pragma pack(push, 1)
 
 typedef struct kShellCommandEntryStruct

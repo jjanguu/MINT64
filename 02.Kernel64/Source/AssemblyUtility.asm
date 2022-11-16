@@ -6,12 +6,8 @@ SECTION .text
 global kInPortByte, kOutPortByte, kLoadGDTR, kLoadTR, kLoadIDTR
 global kEnableInterrupt, kDisableInterrupt, kReadRFLAGS
 global kReadTSC
-global kSwitchContext, kHlt
+global kSwitchContext, kHlt, kTestAndSet
 
-kHlt:
-    hlt
-    hlt
-    ret
 
 kInPortByte:
     push rdx
@@ -163,3 +159,22 @@ kSwitchContext:
     mov rsp, rsi
     KLOADCONTEXT
     iretq
+
+kHlt:
+    hlt
+    hlt
+    ret
+
+kTestAndSet:
+    mov rax, rsi
+
+    lock cmpxchg byte [rdi], dl
+    je .SUCCESS
+
+.NOTSAME:
+    mov rax, 0x00
+    ret
+
+.SUCCESS:
+    mov rax, 0x01
+    ret

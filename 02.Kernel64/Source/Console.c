@@ -2,6 +2,8 @@
 #include "Console.h"
 #include "Keyboard.h"
 #include "Task.h"
+#include "Utility.h"
+#include "AssemblyUtility.h"
 
 CONSOLEMANAGER gs_stConsoleManager = {0, };
 

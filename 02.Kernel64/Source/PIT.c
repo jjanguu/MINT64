@@ -1,4 +1,5 @@
 #include "PIT.h"
+#include "AssemblyUtility.h"
 
 void kInitializePIT(WORD wCount, BOOL bPeriodic){
     if(bPeriodic == TRUE)
