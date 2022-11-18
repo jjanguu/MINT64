@@ -82,14 +82,20 @@ typedef struct kTaskControlBlockStruct
 
     LISTLINK stThreadLink;
 
-    LIST stChildThreadList;
-
     QWORD qwParentProcessID;
+
+    QWORD vqwFPUContext[512 / 8];
+
+    LIST stChildThreadList;
 
     CONTEXT stContext;
 
     void* pvStackAddress;
     QWORD qwStackSize;
+
+    BOOL bFPUUsed;
+
+    char vcPadding[11];
 }TCB;
 
 typedef struct kTCBPoolManagerStruct
@@ -112,6 +118,8 @@ typedef struct kSchedulerStruct
     int viExecuteCount[TASK_MAXREADYLISTCOUNT];
     QWORD qwProcessorLoad;
     QWORD qwSpendProcessorTimeInIdleTask;
+
+    QWORD qwLastFPUUsedTaskID;
 }SCHEDULER;
 
 #pragma pack(pop)
@@ -143,3 +151,6 @@ static TCB* kGetProcessByThread(TCB* pstThread);
 
 void kIdleTask();
 void kHaltProcessorByLoad();
+
+QWORD kGetLastFPUUsedTaskID();
+void kSetLastFPUUsedTaskID(QWORD qwTaskID);
