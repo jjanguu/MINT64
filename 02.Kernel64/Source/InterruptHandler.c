@@ -6,6 +6,7 @@
 #include "Task.h"
 #include "Descriptor.h"
 #include "AssemblyUtility.h"
+#include "HardDisk.h"
 
 void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode){
     char vcBuffer[3] = {0, };
@@ -107,4 +108,22 @@ void kDeviceNotAvailableHandler(int iVectorNumber){
         kLoadFPUContext(pstCurrentTask->vqwFPUContext);
 
     kSetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
+}
+
+void kHDDHandler(int iVectorNumber){
+    char vcBuffer[] = "[INT:  , ]";
+    static int g_iFPUInterrruptCount = 0;
+    BYTE bTemp;
+    vcBuffer[5] = '0' + iVectorNumber / 10;
+    vcBuffer[6] = '0' + iVectorNumber % 10;
+    vcBuffer[8] = '0' + g_iFPUInterrruptCount;
+    g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
+    kPrintStringXY(0, 0, vcBuffer);
+
+    if(iVectorNumber - PIC_IRQSTARTVECTOR == 14)
+        kSetHDDInterruptFlag(TRUE, TRUE);
+    else
+        kSetHDDInterruptFlag(FALSE, TRUE);
+
+    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
 }

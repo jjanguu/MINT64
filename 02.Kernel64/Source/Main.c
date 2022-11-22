@@ -9,6 +9,7 @@
 #include "AssemblyUtility.h"
 #include "Utility.h"
 #include "DynamicMemory.h"
+#include "HardDisk.h"
 
 void kPrintString( int iX, int iY, const char* pcString );
 
@@ -71,6 +72,15 @@ void Main( void ){
     kEnableInterrupt();
     kSetCursor(45, iCursorY++);
     kPrintf("Pass\n");
+
+    kPrintf("HDD Initialize..............................[    ]");
+    if(kInitializeHDD() == TRUE){
+        kSetCursor(45, iCursorY++);
+        kPrintf("Pass\n");
+    }else{
+        kSetCursor(45, iCursorY++);
+        kPrintf("Fail\n");
+    }
 
     kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE,0,0,(QWORD)kIdleTask);
     kStartConsoleShell();
