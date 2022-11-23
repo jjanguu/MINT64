@@ -4,14 +4,13 @@
 
 #pragma pack(push, 1)
 
-typedef struct kMutexStruct
-{
-    volatile QWORD qwTaskID;
-    volatile DWORD dwLockCount;
+typedef struct kMutexStruct {
+  volatile QWORD qwTaskID;
+  volatile DWORD dwLockCount;
 
-    volatile BOOL bLockFlag;
+  volatile BOOL bLockFlag;
 
-    BYTE vbPadding[3];
+  BYTE vbPadding[3];
 } MUTEX;
 
 #pragma pack(pop)
@@ -19,6 +18,6 @@ typedef struct kMutexStruct
 BOOL kLockForSystemData();
 void kUnlockForSystemData(BOOL bInterruptFlag);
 
-void kInitializeMutex(MUTEX* pstMutex);
-void kLock(MUTEX* pstMutex);
-void kUnlock(MUTEX* pstMutex);
+void kInitializeMutex(MUTEX *pstMutex);
+void kLock(MUTEX *pstMutex);
+void kUnlock(MUTEX *pstMutex);

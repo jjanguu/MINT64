@@ -1,129 +1,131 @@
 #include "InterruptHandler.h"
-#include "PIC.h"
-#include "Keyboard.h"
-#include "Console.h"
-#include "Utility.h"
-#include "Task.h"
-#include "Descriptor.h"
 #include "AssemblyUtility.h"
+#include "Console.h"
+#include "Descriptor.h"
 #include "HardDisk.h"
+#include "Keyboard.h"
+#include "PIC.h"
+#include "Task.h"
+#include "Utility.h"
 
-void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode){
-    char vcBuffer[3] = {0, };
+void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode) {
+  char vcBuffer[3] = {
+      0,
+  };
 
-    vcBuffer[0] = '0' + iVectorNumber / 10;
-    vcBuffer[0] = '0' + iVectorNumber % 10;
+  vcBuffer[0] = '0' + iVectorNumber / 10;
+  vcBuffer[0] = '0' + iVectorNumber % 10;
 
-    kPrintStringXY( 0, 0, "====================================================" );
-    kPrintStringXY( 0, 1, "                 Exception Occur                    " );
-    kPrintStringXY( 0, 2, "                    Vector:                         " );
-    kPrintStringXY( 27, 2, vcBuffer );
-    kPrintStringXY( 0, 3, "====================================================" );
-    while(1);
+  kPrintStringXY(0, 0, "====================================================");
+  kPrintStringXY(0, 1, "                 Exception Occur                    ");
+  kPrintStringXY(0, 2, "                    Vector:                         ");
+  kPrintStringXY(27, 2, vcBuffer);
+  kPrintStringXY(0, 3, "====================================================");
+  while (1)
+    ;
 }
 
-void kCommonInterruptHandler(int iVectorNumber){
-    char vcBuffer[] = "[INT:  , ]";
-    static int g_iCommonInterruptCount = 0;
+void kCommonInterruptHandler(int iVectorNumber) {
+  char vcBuffer[] = "[INT:  , ]";
+  static int g_iCommonInterruptCount = 0;
 
-    vcBuffer[5] = '0' + iVectorNumber / 10;
-    vcBuffer[6] = '0' + iVectorNumber % 10;
-    vcBuffer[8] = '0' + g_iCommonInterruptCount;
-    g_iCommonInterruptCount = (g_iCommonInterruptCount + 1) % 10;
-    kPrintStringXY(70, 0, vcBuffer);
+  vcBuffer[5] = '0' + iVectorNumber / 10;
+  vcBuffer[6] = '0' + iVectorNumber % 10;
+  vcBuffer[8] = '0' + g_iCommonInterruptCount;
+  g_iCommonInterruptCount = (g_iCommonInterruptCount + 1) % 10;
+  kPrintStringXY(70, 0, vcBuffer);
 
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+  kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
 }
 
-void kKeyboardHandler(int iVectorNumber){
-    char vcBuffer[] = "[INT:  , ]";
-    static int g_iKeyboardInterruptCount = 0;
-    BYTE bTemp;
-    
-    vcBuffer[5] = '0' + iVectorNumber / 10;
-    vcBuffer[6] = '0' + iVectorNumber % 10;
-    vcBuffer[8] = '0' + g_iKeyboardInterruptCount;
-    g_iKeyboardInterruptCount = (g_iKeyboardInterruptCount + 1) % 10;
-    kPrintStringXY(0, 0, vcBuffer);
+void kKeyboardHandler(int iVectorNumber) {
+  char vcBuffer[] = "[INT:  , ]";
+  static int g_iKeyboardInterruptCount = 0;
+  BYTE bTemp;
 
-    if(kIsOutputBufferFull()){
-        bTemp = kGetKeyboardScanCode();
-        kConvertScanCodeAndPutQueue(bTemp);
-    }
+  vcBuffer[5] = '0' + iVectorNumber / 10;
+  vcBuffer[6] = '0' + iVectorNumber % 10;
+  vcBuffer[8] = '0' + g_iKeyboardInterruptCount;
+  g_iKeyboardInterruptCount = (g_iKeyboardInterruptCount + 1) % 10;
+  kPrintStringXY(0, 0, vcBuffer);
 
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
-    
+  if (kIsOutputBufferFull()) {
+    bTemp = kGetKeyboardScanCode();
+    kConvertScanCodeAndPutQueue(bTemp);
+  }
+
+  kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
 }
 
-void kTimerHandler(int iVectorNumber){
-    char vcBuffer[] = "[INT:  , ]";
-    static int g_iTimerInterruptCount = 0;
+void kTimerHandler(int iVectorNumber) {
+  char vcBuffer[] = "[INT:  , ]";
+  static int g_iTimerInterruptCount = 0;
 
-    vcBuffer[5] = '0' + iVectorNumber / 10;
-    vcBuffer[6] = '0' + iVectorNumber % 10;
-    vcBuffer[8] = '0' + (g_iTimerInterruptCount + 1) % 10;
-    g_iTimerInterruptCount = (g_iTimerInterruptCount + 1) % 10;
-    kPrintStringXY(70, 0, vcBuffer);
+  vcBuffer[5] = '0' + iVectorNumber / 10;
+  vcBuffer[6] = '0' + iVectorNumber % 10;
+  vcBuffer[8] = '0' + (g_iTimerInterruptCount + 1) % 10;
+  g_iTimerInterruptCount = (g_iTimerInterruptCount + 1) % 10;
+  kPrintStringXY(70, 0, vcBuffer);
 
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+  kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
 
-    g_qwTickCount++;
+  g_qwTickCount++;
 
-    kDecreaseProcessorTime();
+  kDecreaseProcessorTime();
 
-    if(kIsProcessorTimeExpired() == TRUE)
-        kScheduleInInterrupt();
+  if (kIsProcessorTimeExpired() == TRUE)
+    kScheduleInInterrupt();
 }
 
-void kDeviceNotAvailableHandler(int iVectorNumber){
-    TCB* pstFPUTask, *pstCurrentTask;
-    QWORD qwLastFPUTaskID;
+void kDeviceNotAvailableHandler(int iVectorNumber) {
+  TCB *pstFPUTask, *pstCurrentTask;
+  QWORD qwLastFPUTaskID;
 
-    char vcBuffer[] = "[EXC:  , ]";
-    static int g_iFPUInterrruptCount = 0;
-    vcBuffer[5] = '0' + iVectorNumber / 10;
-    vcBuffer[6] = '0' + iVectorNumber % 10;
-    vcBuffer[8] = '0' + g_iFPUInterrruptCount;
-    g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
-    kPrintStringXY(0, 0, vcBuffer);
+  char vcBuffer[] = "[EXC:  , ]";
+  static int g_iFPUInterrruptCount = 0;
+  vcBuffer[5] = '0' + iVectorNumber / 10;
+  vcBuffer[6] = '0' + iVectorNumber % 10;
+  vcBuffer[8] = '0' + g_iFPUInterrruptCount;
+  g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
+  kPrintStringXY(0, 0, vcBuffer);
 
-    kClearTS();
+  kClearTS();
 
-    qwLastFPUTaskID = kGetLastFPUUsedTaskID();
-    pstCurrentTask = kGetRunningTask();
+  qwLastFPUTaskID = kGetLastFPUUsedTaskID();
+  pstCurrentTask = kGetRunningTask();
 
-    if(qwLastFPUTaskID == pstCurrentTask->stLink.qwID)
-        return ;
+  if (qwLastFPUTaskID == pstCurrentTask->stLink.qwID)
+    return;
 
-    else if(qwLastFPUTaskID != TASK_INVALIDID){
-        pstFPUTask = kGetTCBInTCBPool(GETTCBOFFSET(qwLastFPUTaskID));
-        if((pstFPUTask != NULL) && (pstFPUTask->stLink.qwID == qwLastFPUTaskID))
-            kSaveFPUContext(pstFPUTask->vqwFPUContext);
-    }
+  else if (qwLastFPUTaskID != TASK_INVALIDID) {
+    pstFPUTask = kGetTCBInTCBPool(GETTCBOFFSET(qwLastFPUTaskID));
+    if ((pstFPUTask != NULL) && (pstFPUTask->stLink.qwID == qwLastFPUTaskID))
+      kSaveFPUContext(pstFPUTask->vqwFPUContext);
+  }
 
-    if(pstCurrentTask->bFPUUsed == FALSE){
-        kInitializeFPU();
-        pstCurrentTask->bFPUUsed = TRUE;
-    } else
-        kLoadFPUContext(pstCurrentTask->vqwFPUContext);
+  if (pstCurrentTask->bFPUUsed == FALSE) {
+    kInitializeFPU();
+    pstCurrentTask->bFPUUsed = TRUE;
+  } else
+    kLoadFPUContext(pstCurrentTask->vqwFPUContext);
 
-    kSetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
+  kSetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
 }
 
-void kHDDHandler(int iVectorNumber){
-    char vcBuffer[] = "[INT:  , ]";
-    static int g_iFPUInterrruptCount = 0;
-    BYTE bTemp;
-    vcBuffer[5] = '0' + iVectorNumber / 10;
-    vcBuffer[6] = '0' + iVectorNumber % 10;
-    vcBuffer[8] = '0' + g_iFPUInterrruptCount;
-    g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
-    kPrintStringXY(0, 0, vcBuffer);
+void kHDDHandler(int iVectorNumber) {
+  char vcBuffer[] = "[INT:  , ]";
+  static int g_iFPUInterrruptCount = 0;
+  BYTE bTemp;
+  vcBuffer[5] = '0' + iVectorNumber / 10;
+  vcBuffer[6] = '0' + iVectorNumber % 10;
+  vcBuffer[8] = '0' + g_iFPUInterrruptCount;
+  g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
+  kPrintStringXY(0, 0, vcBuffer);
 
-    if(iVectorNumber - PIC_IRQSTARTVECTOR == 14)
-        kSetHDDInterruptFlag(TRUE, TRUE);
-    else
-        kSetHDDInterruptFlag(FALSE, TRUE);
+  if (iVectorNumber - PIC_IRQSTARTVECTOR == 14)
+    kSetHDDInterruptFlag(TRUE, TRUE);
+  else
+    kSetHDDInterruptFlag(FALSE, TRUE);
 
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+  kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
 }

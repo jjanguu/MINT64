@@ -2,14 +2,22 @@
 
 #include "Types.h"
 
-#define WAIT_BUFFER for(i=0; i<0xFFFF; i++)
-#define WAIT_IN_BUFFER WAIT_BUFFER{if(kIsInputBufferFull()) break;}
-#define WAIT_OUT_BUFFER WAIT_BUFFER{if(kIsOutputBufferFull()) break;}
+#define WAIT_BUFFER for (i = 0; i < 0xFFFF; i++)
+#define WAIT_IN_BUFFER                                                         \
+  WAIT_BUFFER {                                                                \
+    if (kIsInputBufferFull())                                                  \
+      break;                                                                   \
+  }
+#define WAIT_OUT_BUFFER                                                        \
+  WAIT_BUFFER {                                                                \
+    if (kIsOutputBufferFull())                                                 \
+      break;                                                                   \
+  }
 
 #define KEY_SKIPCOUNTFORPAUSE 2
 
-#define KEY_FLAGS_UP          0x00
-#define KEY_FLAGS_DOWN        0x01
+#define KEY_FLAGS_UP 0x00
+#define KEY_FLAGS_DOWN 0x01
 #define KEY_FLAGS_EXTENDEDKEY 0x02
 
 #define KEY_MAPPINGTABLEMAXCOUNT 89
@@ -54,34 +62,30 @@
 
 #define KEY_MAXQUEUECOUNT 100
 
-#pragma pack (push, 1)
+#pragma pack(push, 1)
 
-typedef struct kKeyMappingEntryStruct
-{
-    BYTE bNormalCode;
-    BYTE bCombinedCode;
+typedef struct kKeyMappingEntryStruct {
+  BYTE bNormalCode;
+  BYTE bCombinedCode;
 } KEYMAPPINGENTRY;
 
 #pragma pack(pop)
 
-typedef struct kKeyboardManagerStruct
-{
-    BOOL bShiftDown;
-    BOOL bCapsLockOn;
-    BOOL bNumLockOn;
-    BOOL bScrollLockOn;
+typedef struct kKeyboardManagerStruct {
+  BOOL bShiftDown;
+  BOOL bCapsLockOn;
+  BOOL bNumLockOn;
+  BOOL bScrollLockOn;
 
-    BOOL bExtendedCodeIn;
-    int iSkipCountForPause;
+  BOOL bExtendedCodeIn;
+  int iSkipCountForPause;
 } KEYBOARDMANAGER;
 
-typedef struct kKeyDataStruct
-{
-    BYTE bScanCode;
-    BYTE bASCIICode;
-    BYTE bFlags;
-}KEYDATA;
-
+typedef struct kKeyDataStruct {
+  BYTE bScanCode;
+  BYTE bASCIICode;
+  BYTE bFlags;
+} KEYDATA;
 
 BOOL kIsOutputBufferFull();
 BOOL kIsInputBufferFull();
@@ -95,10 +99,9 @@ BOOL kIsNumberOrSymbolScanCode(BYTE bScanCode);
 BOOL kIsNumberPadScanCode(BYTE bScanCode);
 BOOL kIsUseCombinedCode(BYTE bScanCode);
 void UpdateCombinationKeyStatusAndLED(BYTE bScanCode);
-BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE* pbASCIICode, BOOL* pbFlags);
+BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode,
+                                 BOOL *pbFlags);
 BOOL kInitializeKeyboard();
 BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode);
-BOOL kGetKeyFromKeyQueue(KEYDATA* pstData);
+BOOL kGetKeyFromKeyQueue(KEYDATA *pstData);
 BOOL kWaitForACKAndPutOtherScanCode();
-
-

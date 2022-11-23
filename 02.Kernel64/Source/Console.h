@@ -28,7 +28,8 @@
 #define CONSOLE_FOREGROUND_BRIGHTYELLOW 0x0E
 #define CONSOLE_FOREGROUND_BRIGHTWHITE 0x0F
 
-#define CONSOLE_DEFAULTTEXTCOLOR (CONSOLE_BACKGROUND_BLACK | CONSOLE_FOREGROUND_BRIGHTGREEN)
+#define CONSOLE_DEFAULTTEXTCOLOR                                               \
+  (CONSOLE_BACKGROUND_BLACK | CONSOLE_FOREGROUND_BRIGHTGREEN)
 
 #define CONSOLE_WIDTH 80
 #define CONSOLE_HEIGHT 25
@@ -41,18 +42,17 @@
 
 #pragma pack(push, 1)
 
-typedef struct kConsoleManagerStruct
-{
-    int iCurrentPrintOffset;
-}CONSOLEMANAGER;
+typedef struct kConsoleManagerStruct {
+  int iCurrentPrintOffset;
+} CONSOLEMANAGER;
 
 #pragma pack(pop)
 
 void kInitializeConsole(int iX, int iY);
 void kSetCursor(int iX, int iY);
 void kGetCursor(int *piX, int *piY);
-void kPrintf(const char* pcFormatString, ...);
-int  kConsolePrintString(const char* pcBuffer);
+void kPrintf(const char *pcFormatString, ...);
+int kConsolePrintString(const char *pcBuffer);
 void kClearScreen(void);
 BYTE kGetCh(void);
-void kPrintStringXY(int iX, int iY, const char* pcString);
+void kPrintStringXY(int iX, int iY, const char *pcString);

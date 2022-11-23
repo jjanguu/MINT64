@@ -1,47 +1,46 @@
 #include "synchronization.h"
-#include "Utility.h"
 #include "AssemblyUtility.h"
 #include "Task.h"
+#include "Utility.h"
 
-BOOL kLockForSystemData(){
-    return kSetInterruptFlag(FALSE);
+BOOL kLockForSystemData() { return kSetInterruptFlag(FALSE); }
+
+void kUnlockForSystemData(BOOL bInterruptFlag) {
+  kSetInterruptFlag(bInterruptFlag);
 }
 
-void kUnlockForSystemData(BOOL bInterruptFlag){
-    kSetInterruptFlag(bInterruptFlag);
+void kInitializeMutex(MUTEX *pstMutex) {
+  pstMutex->bLockFlag = FALSE;
+  pstMutex->dwLockCount = 0;
+  pstMutex->qwTaskID = TASK_INVALIDID;
 }
 
-void kInitializeMutex(MUTEX* pstMutex){
-    pstMutex->bLockFlag = FALSE;
-    pstMutex->dwLockCount = 0;
-    pstMutex->qwTaskID = TASK_INVALIDID;
-}
-
-void kLock(MUTEX* pstMutex){
-    if(kTestAndSet(&(pstMutex->bLockFlag), 0, 1) == FALSE){
-        if(pstMutex->qwTaskID == kGetRunningTask()->stLink.qwID){
-            pstMutex->dwLockCount++;
-            return ;
-        }
-
-        while(kTestAndSet(&(pstMutex->bLockFlag), 0, 1) == FALSE){
-            kSchedule();
-        }
-    }
-    pstMutex->dwLockCount = 1;
-    pstMutex->qwTaskID = kGetRunningTask()->stLink.qwID;
-}
-
-void kUnlock(MUTEX* pstMutex){
-    if((pstMutex->bLockFlag == FALSE) || (pstMutex->qwTaskID != kGetRunningTask()->stLink.qwID))
-        return ;
-
-    if(pstMutex->dwLockCount > 1){
-        pstMutex->dwLockCount--;
-        return ;
+void kLock(MUTEX *pstMutex) {
+  if (kTestAndSet(&(pstMutex->bLockFlag), 0, 1) == FALSE) {
+    if (pstMutex->qwTaskID == kGetRunningTask()->stLink.qwID) {
+      pstMutex->dwLockCount++;
+      return;
     }
 
-    pstMutex->qwTaskID = TASK_INVALIDID;
-    pstMutex->dwLockCount = 0;
-    pstMutex->bLockFlag = FALSE;
+    while (kTestAndSet(&(pstMutex->bLockFlag), 0, 1) == FALSE) {
+      kSchedule();
+    }
+  }
+  pstMutex->dwLockCount = 1;
+  pstMutex->qwTaskID = kGetRunningTask()->stLink.qwID;
+}
+
+void kUnlock(MUTEX *pstMutex) {
+  if ((pstMutex->bLockFlag == FALSE) ||
+      (pstMutex->qwTaskID != kGetRunningTask()->stLink.qwID))
+    return;
+
+  if (pstMutex->dwLockCount > 1) {
+    pstMutex->dwLockCount--;
+    return;
+  }
+
+  pstMutex->qwTaskID = TASK_INVALIDID;
+  pstMutex->dwLockCount = 0;
+  pstMutex->bLockFlag = FALSE;
 }
