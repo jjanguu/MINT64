@@ -15,7 +15,7 @@ bootLoader = sector_align(open(sys.argv[1], "rb").read())
 kernel32 = sector_align(open(sys.argv[2], "rb").read())
 kernel64 = sector_align(open(sys.argv[3], "rb").read())
 
-imgData = bootLoader + kernel32 + kernel64
+imgData = bootLoader + kernel32 + kernel64 
 
 kernel32SectorCount = int(len(kernel32) / 512)
 kernel64SectorCount = int(len(kernel64) / 512)
