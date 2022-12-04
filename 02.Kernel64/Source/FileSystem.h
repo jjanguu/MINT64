@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CacheManager.h"
 #include "HardDisk.h"
 #include "Synchronization.h"
 #include "Task.h"
@@ -118,6 +119,8 @@ typedef struct kFileSystemManagerStruct {
   MUTEX stMutex;
 
   FILE *pstHandlePool;
+
+  BOOL bCacheEnable;
 } FILESYSTEMMANAGER;
 
 #pragma pack(pop)
@@ -139,6 +142,20 @@ static BOOL kGetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry);
 static int kFindDirectoryEntry(const char *pcFileName,
                                DIRECTORYENTRY *pstEntry);
 void kGetFileSystemInformation(FILESYSTEMMANAGER *pstManager);
+static BOOL kInternalReadClusterLinkTableWithoutCache(DWORD dwOffset,
+                                                      BYTE *pbBuffer);
+static BOOL kInternalReadClusterLinkTableWithCache(DWORD dwOffset,
+                                                   BYTE *pbBuffer);
+static BOOL kInternalWriteClusterLinkTableWithoutCache(DWORD dwOffset,
+                                                       BYTE *pbBuffer);
+static BOOL kInternalWriteClusterLinkTableWithCache(DWORD dwOffset,
+                                                    BYTE *pbBuffer);
+static BOOL kInternalReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static CACHEBUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex);
+BOOL kFlushFileSystemCache(void);
 
 FILE *kOpenFile(const char *pcFileName, const char *pcMode);
 DWORD kReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);

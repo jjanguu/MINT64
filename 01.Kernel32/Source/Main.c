@@ -1,4 +1,3 @@
-//보호모드 C 언어 커널
 
 #include "ModeSwitch.h"
 #include "Page.h"
