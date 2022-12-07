@@ -5,6 +5,7 @@
 #include "FileSystem.h"
 #include "HardDisk.h"
 #include "Keyboard.h"
+#include "MPConfigurationTable.h"
 #include "PIT.h"
 #include "RTC.h"
 #include "SerialPort.h"
@@ -63,6 +64,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"flush", "Flush File System Cache", kFlushCache},
     {"download", "Download Data From Serial, ex) download a.txt",
      kDownloadFile},
+    {"showmpinfo", "Show MP Configuration Table Information",
+     kShowMPConfigurationTable},
 };
 
 void kStartConsoleShell() {
@@ -1648,4 +1651,8 @@ static void kDownloadFile(const char *pcParameterBuffer) {
 
   fclose(fp);
   kFlushFileSystemCache();
+}
+
+static void kShowMPConfigurationTable(const char *pcParameterBuffer) {
+  kPrintMPConfigurationTable();
 }
