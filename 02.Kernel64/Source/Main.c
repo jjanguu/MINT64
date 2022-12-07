@@ -8,6 +8,7 @@
 #include "Keyboard.h"
 #include "PIC.h"
 #include "PIT.h"
+#include "SerialPort.h"
 #include "Task.h"
 #include "Types.h"
 #include "Utility.h"
@@ -83,6 +84,10 @@ void Main(void) {
     kSetCursor(45, iCursorY++);
     kPrintf("Fail\n");
   }
+
+  kPrintf("Serial Port Initialize......................[Pass]\n");
+  iCursorY++;
+  kInitializeSerialPort();
 
   kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM |
                   TASK_FLAGS_IDLE,

@@ -34,3 +34,4 @@ BOOL kGetCacheBufferAndCount(int iCacheTableIndex,
 static void kCutDownAccessTime(int iCacheTableIndex);
 static void kFlushCache(const char *pcParameterBuffer);
 static void kTestPerformance(const char *pcParameterBuffer);
+static void kDownloadFile(const char *pcParameterBuffer);

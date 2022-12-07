@@ -7,6 +7,7 @@
 #include "Keyboard.h"
 #include "PIT.h"
 #include "RTC.h"
+#include "SerialPort.h"
 #include "Synchronization.h"
 #include "Task.h"
 #include "Utility.h"
@@ -60,6 +61,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"testfileio", "Test File I/O Function", kTestFileIO},
     {"testperformance", "Test File Read/WritePerformance", kTestPerformance},
     {"flush", "Flush File System Cache", kFlushCache},
+    {"download", "Download Data From Serial, ex) download a.txt",
+     kDownloadFile},
 };
 
 void kStartConsoleShell() {
@@ -1547,4 +1550,102 @@ static void kFlushCache(const char *pcParameterBuffer) {
     kPrintf("Fail\n");
 
   kPrintf("Total Time = %d ms\n", kGetTickCount() - qwTickCount);
+}
+static void kDownloadFile(const char *pcParameterBuffer) {
+  PARAMETERLIST stList;
+  char vcFileName[50];
+  int iFileNameLength;
+  DWORD dwDataLength;
+  FILE *fp;
+  DWORD dwReceivedSize;
+  DWORD dwTempSize;
+  BYTE vbDataBuffer[SERIAL_FIFOMAXSIZE];
+  QWORD qwLastReceivedTickCount;
+
+  kInitializeParameter(&stList, pcParameterBuffer);
+  iFileNameLength = kGetNextParameter(&stList, vcFileName);
+  vcFileName[iFileNameLength] = '\0';
+  if ((iFileNameLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) ||
+      (iFileNameLength == 0)) {
+    kPrintf("Too Long or Too Short File Name\n");
+    kPrintf("ex)download a.txt\n");
+    return;
+  }
+
+  kClearSerialFIFO();
+
+  kPrintf("Waiting For Data Length.....");
+  dwReceivedSize = 0;
+  qwLastReceivedTickCount = kGetTickCount();
+  while (dwReceivedSize < 4) {
+
+    dwTempSize = kReceiveSerialData(((BYTE *)&dwDataLength) + dwReceivedSize,
+                                    4 - dwReceivedSize);
+    dwReceivedSize += dwTempSize;
+
+    if (dwTempSize == 0) {
+      kSleep(0);
+
+      if ((kGetTickCount() - qwLastReceivedTickCount) > 30000) {
+        kPrintf("Time Out Occur~!!\n");
+        return;
+      }
+    } else {
+
+      qwLastReceivedTickCount = kGetTickCount();
+    }
+  }
+  kPrintf("[%d] Byte\n", dwDataLength);
+
+  kSendSerialData("A", 1);
+
+  fp = fopen(vcFileName, "w");
+  if (fp == NULL) {
+    kPrintf("%s File Open Fail\n", vcFileName);
+    return;
+  }
+
+  kPrintf("Data Receive Start: ");
+  dwReceivedSize = 0;
+  qwLastReceivedTickCount = kGetTickCount();
+  while (dwReceivedSize < dwDataLength) {
+
+    dwTempSize = kReceiveSerialData(vbDataBuffer, SERIAL_FIFOMAXSIZE);
+    dwReceivedSize += dwTempSize;
+
+    if (dwTempSize != 0) {
+
+      if (((dwReceivedSize % SERIAL_FIFOMAXSIZE) == 0) ||
+          ((dwReceivedSize == dwDataLength))) {
+        kSendSerialData("A", 1);
+        kPrintf("#");
+      }
+
+      if (fwrite(vbDataBuffer, 1, dwTempSize, fp) != dwTempSize) {
+        kPrintf("File Write Error Occur\n");
+        break;
+      }
+
+      qwLastReceivedTickCount = kGetTickCount();
+    }
+
+    else {
+      kSleep(0);
+
+      if ((kGetTickCount() - qwLastReceivedTickCount) > 10000) {
+        kPrintf("Time Out Occur~!!\n");
+        break;
+      }
+    }
+  }
+
+  if (dwReceivedSize != dwDataLength) {
+    kPrintf("\nError Occur. Total Size [%d] Received Size [%d]\n",
+            dwReceivedSize, dwDataLength);
+  } else {
+    kPrintf("\nReceive Complete. Total Size [%d] Byte\n", dwReceivedSize);
+  }
+
+  fclose(fp);
+  kFlushFileSystemCache();
 }

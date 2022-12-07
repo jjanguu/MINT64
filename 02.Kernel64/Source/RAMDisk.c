@@ -5,7 +5,6 @@
 static RDDMANAGER gs_stRDDManager;
 
 BOOL kInitializeRDD(DWORD dwTotalSectorCount) {
-  kPrintf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
   kMemSet(&gs_stRDDManager, 0, sizeof(gs_stRDDManager));
 
   gs_stRDDManager.pbBuffer = (BYTE *)kAllocateMemory(dwTotalSectorCount * 512);
