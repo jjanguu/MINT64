@@ -3,7 +3,7 @@
 #include "Console.h"
 #include "Utility.h"
 
-static MPCONFIGRUATIONMANAGER gs_stMPConfigurationManager = {
+static MPCONFIGURATIONMANAGER gs_stMPConfigurationManager = {
     0,
 };
 
@@ -67,7 +67,7 @@ BOOL kAnalysisMPConfigurationTable(void) {
   PROCESSORENTRY *pstProcessorEntry;
   BUSENTRY *pstBusEntry;
 
-  kMemSet(&gs_stMPConfigurationManager, 0, sizeof(MPCONFIGRUATIONMANAGER));
+  kMemSet(&gs_stMPConfigurationManager, 0, sizeof(MPCONFIGURATIONMANAGER));
   gs_stMPConfigurationManager.bISABusID = 0xFF;
 
   if (kFindMPFloatingPointerAddress(&qwMPFloatingPointerAddress) == FALSE) {
@@ -125,12 +125,12 @@ BOOL kAnalysisMPConfigurationTable(void) {
   return TRUE;
 }
 
-MPCONFIGRUATIONMANAGER *kGetMPConfigurationManager(void) {
+MPCONFIGURATIONMANAGER *kGetMPConfigurationManager(void) {
   return &gs_stMPConfigurationManager;
 }
 
 void kPrintMPConfigurationTable(void) {
-  MPCONFIGRUATIONMANAGER *pstMPConfigurationManager;
+  MPCONFIGURATIONMANAGER *pstMPConfigurationManager;
   QWORD qwMPFloatingPointerAddress;
   MPFLOATINGPOINTER *pstMPFloatingPointer;
   MPCONFIGURATIONTABLEHEADER *pstMPTableHeader;

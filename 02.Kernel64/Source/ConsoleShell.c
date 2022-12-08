@@ -5,7 +5,9 @@
 #include "FileSystem.h"
 #include "HardDisk.h"
 #include "Keyboard.h"
+#include "LocalAPIC.h"
 #include "MPConfigurationTable.h"
+#include "MultiProcessor.h"
 #include "PIT.h"
 #include "RTC.h"
 #include "SerialPort.h"
@@ -66,6 +68,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
      kDownloadFile},
     {"showmpinfo", "Show MP Configuration Table Information",
      kShowMPConfigurationTable},
+    {"startap", "Start Application Processor", kStartApplicationProcessor},
 };
 
 void kStartConsoleShell() {
@@ -1655,4 +1658,15 @@ static void kDownloadFile(const char *pcParameterBuffer) {
 
 static void kShowMPConfigurationTable(const char *pcParameterBuffer) {
   kPrintMPConfigurationTable();
+}
+
+static void kStartApplicationProcessor(const char *pcParameterBuffer) {
+  if (kStartUpApplicationProcessor() == FALSE) {
+    kPrintf("Application Processor Start Fail\n");
+    return;
+  }
+  kPrintf("Application Processor Start Success\n");
+
+  kPrintf("Bootstrap Processor[APIC ID :%d] Start Application Processor\n",
+          kGetAPICID());
 }

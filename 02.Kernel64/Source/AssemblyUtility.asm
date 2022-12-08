@@ -9,6 +9,7 @@ global kEnableInterrupt, kDisableInterrupt, kReadRFLAGS
 global kReadTSC
 global kSwitchContext, kHlt, kTestAndSet
 global kInitializeFPU, kSaveFPUContext, kLoadFPUContext, kSetTS, kClearTS
+global kEnableGlobalLocalAPIC
 
 kInPortByte:
     push rdx
@@ -226,4 +227,20 @@ kSetTS:
 
 kClearTS:
     clts
+    ret
+
+kEnableGlobalLocalAPIC:
+    push rax
+    push rcx
+    push rdx
+
+    mov rcx, 27
+    rdmsr
+
+    or eax, 0x0800
+    wrmsr
+
+    pop rdx
+    pop rcx
+    pop rax
     ret

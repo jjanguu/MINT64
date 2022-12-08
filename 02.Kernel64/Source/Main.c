@@ -6,6 +6,7 @@
 #include "FileSystem.h"
 #include "HardDisk.h"
 #include "Keyboard.h"
+#include "MultiProcessor.h"
 #include "PIC.h"
 #include "PIT.h"
 #include "SerialPort.h"
@@ -14,9 +15,15 @@
 #include "Utility.h"
 
 void kPrintString(int iX, int iY, const char *pcString);
+void MainForApplicationProcessor();
 
 void Main(void) {
   int iCursorX, iCursorY;
+
+  if (*((BYTE *)BOOTSTRAPPROCESSOR_FLAGADDRESS) == 0)
+    MainForApplicationProcessor();
+
+  *((BYTE *)BOOTSTRAPPROCESSOR_FLAGADDRESS) = 0;
 
   kInitializeConsole(0, 10);
   kPrintf("Switch To IA-32e Mode Success\n");
@@ -93,4 +100,23 @@ void Main(void) {
                   TASK_FLAGS_IDLE,
               0, 0, (QWORD)kIdleTask);
   kStartConsoleShell();
+}
+
+void MainForApplicationProcessor() {
+  QWORD qwTickCount;
+
+  kLoadGDTR(GDTR_STARTADDRESS);
+
+  kLoadTR(GDT_TSSSEGMENT + (kGetAPICID() * sizeof(GDTENTRY16)));
+
+  kLoadIDTR(IDTR_STARTADDRESS);
+
+  qwTickCount = kGetTickCount();
+  while (1) {
+    if (kGetTickCount() - qwTickCount > 1000 + 10 * kGetAPICID()) {
+      qwTickCount = kGetTickCount();
+      kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
+              kGetAPICID());
+    }
+  }
 }
