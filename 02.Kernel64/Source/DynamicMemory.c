@@ -141,7 +141,6 @@ static QWORD kGetBuddyBlockSize(QWORD qwSize) {
 static int kAllocationBuddyBlock(QWORD qwAlignedSize) {
   int iBlockListIndex, iFreeOffset;
   int i;
-  BOOL bPreviousInterrruptFlag;
 
   iBlockListIndex = kGetBlockListIndexOfMatchSize(qwAlignedSize);
   if (iBlockListIndex == -1)
@@ -210,6 +209,7 @@ static int kFindFreeBlockInBitmap(int iBlockListIndex) {
   }
   return -1;
 }
+// asdf
 
 static void kSetFlagInBitmap(int iBlockListIndex, int iOffset, BYTE bFlag) {
   BYTE *pbBitmap;
@@ -260,7 +260,6 @@ static BOOL kFreeBuddyBlock(int iBlockListIndex, int iBlockOffset) {
   int iBuddyBlockOffset;
   int i;
   BOOL bFlag;
-  BOOL bPreviousInterruptFlag;
 
   kLockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 

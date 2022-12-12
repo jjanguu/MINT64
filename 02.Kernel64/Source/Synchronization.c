@@ -4,7 +4,6 @@
 #include "Task.h"
 #include "Utility.h"
 
-
 #if 0
 BOOL kLockForSystemData() { return kSetInterruptFlag(FALSE); }
 

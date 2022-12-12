@@ -351,7 +351,6 @@ BOOL kInitializeKeyboard() {
 BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode) {
   KEYDATA stData;
   BOOL bResult = FALSE;
-  BOOL bPreviousInterrrupt;
 
   stData.bScanCode = bScanCode;
 
@@ -367,7 +366,6 @@ BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode) {
 
 BOOL kGetKeyFromKeyQueue(KEYDATA *pstData) {
   BOOL bResult;
-  BOOL bPreviousInterrupt;
 
   if (kIsQueueEmpty(&gs_stKeyQueue))
     return FALSE;

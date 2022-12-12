@@ -11,9 +11,9 @@
 #include "Task.h"
 #include "Utility.h"
 
-static INTERRUPTMANAGER gs_stInterruptManager;
 
-void kInitializeHandler() {
+static INTERRUPTMANAGER gs_stInterruptManager;
+void kInitializeHandler(void) {
   kMemSet(&gs_stInterruptManager, 0, sizeof(gs_stInterruptManager));
 }
 
@@ -26,14 +26,19 @@ void kSetInterruptLoadBalancing(BOOL bUseLoadBalancing) {
 }
 
 void kIncreaseInterruptCount(int iIRQ) {
+
   gs_stInterruptManager.vvqwCoreInterruptCount[kGetAPICID()][iIRQ]++;
 }
 
 void kSendEOI(int iIRQ) {
-  if (gs_stInterruptManager.bSymmetricIOMode == FALSE)
+
+  if (gs_stInterruptManager.bSymmetricIOMode == FALSE) {
     kSendEOIToPIC(iIRQ);
-  else
+  }
+
+  else {
     kSendEOIToLocalAPIC();
+  }
 }
 
 INTERRUPTMANAGER *kGetInterruptManager(void) { return &gs_stInterruptManager; }
@@ -47,6 +52,7 @@ void kProcessLoadBalancing(int iIRQ) {
   BYTE bAPICID;
 
   bAPICID = kGetAPICID();
+
   if ((gs_stInterruptManager.vvqwCoreInterruptCount[bAPICID][iIRQ] == 0) ||
       ((gs_stInterruptManager.vvqwCoreInterruptCount[bAPICID][iIRQ] %
         INTERRUPT_LOADBALANCINGDIVIDOR) != 0) ||
@@ -76,6 +82,7 @@ void kProcessLoadBalancing(int iIRQ) {
     }
   }
 }
+
 void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode) {
   char vcBuffer[3] = {
       0,
@@ -84,6 +91,7 @@ void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode) {
   kPrintStringXY(0, 0, "====================================================");
   kPrintStringXY(0, 1, "                 Exception Occur~!!!!               ");
   kPrintStringXY(0, 2, "              Vector:           Core ID:            ");
+
   vcBuffer[0] = '0' + iVectorNumber / 10;
   vcBuffer[1] = '0' + iVectorNumber % 10;
   kPrintStringXY(21, 2, vcBuffer);
@@ -94,7 +102,6 @@ void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode) {
   while (1)
     ;
 }
-
 void kCommonInterruptHandler(int iVectorNumber) {
   char vcBuffer[] = "[INT:  , ]";
   static int g_iCommonInterruptCount = 0;
@@ -102,18 +109,19 @@ void kCommonInterruptHandler(int iVectorNumber) {
 
   vcBuffer[5] = '0' + iVectorNumber / 10;
   vcBuffer[6] = '0' + iVectorNumber % 10;
+
   vcBuffer[8] = '0' + g_iCommonInterruptCount;
   g_iCommonInterruptCount = (g_iCommonInterruptCount + 1) % 10;
   kPrintStringXY(70, 0, vcBuffer);
 
   iIRQ = iVectorNumber - PIC_IRQSTARTVECTOR;
+
   kSendEOI(iIRQ);
 
   kIncreaseInterruptCount(iIRQ);
 
   kProcessLoadBalancing(iIRQ);
 }
-
 void kKeyboardHandler(int iVectorNumber) {
   char vcBuffer[] = "[INT:  , ]";
   static int g_iKeyboardInterruptCount = 0;
@@ -122,23 +130,24 @@ void kKeyboardHandler(int iVectorNumber) {
 
   vcBuffer[5] = '0' + iVectorNumber / 10;
   vcBuffer[6] = '0' + iVectorNumber % 10;
+
   vcBuffer[8] = '0' + g_iKeyboardInterruptCount;
   g_iKeyboardInterruptCount = (g_iKeyboardInterruptCount + 1) % 10;
   kPrintStringXY(0, 0, vcBuffer);
 
-  if (kIsOutputBufferFull()) {
+  if (kIsOutputBufferFull() == TRUE) {
     bTemp = kGetKeyboardScanCode();
     kConvertScanCodeAndPutQueue(bTemp);
   }
 
   iIRQ = iVectorNumber - PIC_IRQSTARTVECTOR;
+
   kSendEOI(iIRQ);
 
   kIncreaseInterruptCount(iIRQ);
 
   kProcessLoadBalancing(iIRQ);
 }
-
 void kTimerHandler(int iVectorNumber) {
   char vcBuffer[] = "[INT:  , ]";
   static int g_iTimerInterruptCount = 0;
@@ -146,37 +155,41 @@ void kTimerHandler(int iVectorNumber) {
 
   vcBuffer[5] = '0' + iVectorNumber / 10;
   vcBuffer[6] = '0' + iVectorNumber % 10;
-  vcBuffer[8] = '0' + (g_iTimerInterruptCount + 1) % 10;
+
+  vcBuffer[8] = '0' + g_iTimerInterruptCount;
   g_iTimerInterruptCount = (g_iTimerInterruptCount + 1) % 10;
   kPrintStringXY(70, 0, vcBuffer);
 
   iIRQ = iVectorNumber - PIC_IRQSTARTVECTOR;
+
   kSendEOI(iIRQ);
 
   kIncreaseInterruptCount(iIRQ);
 
-  kProcessLoadBalancing(iIRQ);
-
   if (kGetAPICID() == 0) {
+
     g_qwTickCount++;
 
     kDecreaseProcessorTime();
 
-    if (kIsProcessorTimeExpired() == TRUE)
+    if (kIsProcessorTimeExpired() == TRUE) {
       kScheduleInInterrupt();
+    }
   }
 }
 
 void kDeviceNotAvailableHandler(int iVectorNumber) {
   TCB *pstFPUTask, *pstCurrentTask;
   QWORD qwLastFPUTaskID;
+
   char vcBuffer[] = "[EXC:  , ]";
-  static int g_iFPUInterrruptCount = 0;
+  static int g_iFPUInterruptCount = 0;
 
   vcBuffer[5] = '0' + iVectorNumber / 10;
   vcBuffer[6] = '0' + iVectorNumber % 10;
-  vcBuffer[8] = '0' + g_iFPUInterrruptCount;
-  g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
+
+  vcBuffer[8] = '0' + g_iFPUInterruptCount;
+  g_iFPUInterruptCount = (g_iFPUInterruptCount + 1) % 10;
   kPrintStringXY(0, 0, vcBuffer);
 
   kClearTS();
@@ -184,47 +197,48 @@ void kDeviceNotAvailableHandler(int iVectorNumber) {
   qwLastFPUTaskID = kGetLastFPUUsedTaskID();
   pstCurrentTask = kGetRunningTask();
 
-  if (qwLastFPUTaskID == pstCurrentTask->stLink.qwID)
+  if (qwLastFPUTaskID == pstCurrentTask->stLink.qwID) {
     return;
+  }
 
   else if (qwLastFPUTaskID != TASK_INVALIDID) {
     pstFPUTask = kGetTCBInTCBPool(GETTCBOFFSET(qwLastFPUTaskID));
-    if ((pstFPUTask != NULL) && (pstFPUTask->stLink.qwID == qwLastFPUTaskID))
+    if ((pstFPUTask != NULL) && (pstFPUTask->stLink.qwID == qwLastFPUTaskID)) {
       kSaveFPUContext(pstFPUTask->vqwFPUContext);
+    }
   }
 
   if (pstCurrentTask->bFPUUsed == FALSE) {
     kInitializeFPU();
     pstCurrentTask->bFPUUsed = TRUE;
-  } else
+  } else {
     kLoadFPUContext(pstCurrentTask->vqwFPUContext);
+  }
 
   kSetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
 }
 
 void kHDDHandler(int iVectorNumber) {
   char vcBuffer[] = "[INT:  , ]";
-  static int g_iFPUInterrruptCount = 0;
+  static int g_iHDDInterruptCount = 0;
   BYTE bTemp;
   int iIRQ;
 
   vcBuffer[5] = '0' + iVectorNumber / 10;
   vcBuffer[6] = '0' + iVectorNumber % 10;
-  vcBuffer[8] = '0' + g_iFPUInterrruptCount;
-  g_iFPUInterrruptCount = (g_iFPUInterrruptCount + 1) % 10;
-  kPrintStringXY(0, 0, vcBuffer);
+
+  vcBuffer[8] = '0' + g_iHDDInterruptCount;
+  g_iHDDInterruptCount = (g_iHDDInterruptCount + 1) % 10;
+
+  kPrintStringXY(10, 0, vcBuffer);
+
+  kSetHDDInterruptFlag(TRUE, TRUE);
+
   iIRQ = iVectorNumber - PIC_IRQSTARTVECTOR;
-  if (iIRQ == 14)
-    kSetHDDInterruptFlag(TRUE, TRUE);
-  else
-    kSetHDDInterruptFlag(FALSE, TRUE);
 
   kSendEOI(iIRQ);
 
   kIncreaseInterruptCount(iIRQ);
 
   kProcessLoadBalancing(iIRQ);
-
-  kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
-  kSendEOIToLocalAPIC();
 }

@@ -6,6 +6,7 @@
 #include "FileSystem.h"
 #include "HardDisk.h"
 #include "Keyboard.h"
+#include "LocalAPIC.h"
 #include "MultiProcessor.h"
 #include "PIC.h"
 #include "PIT.h"
@@ -111,9 +112,19 @@ void MainForApplicationProcessor() {
 
   kLoadIDTR(IDTR_STARTADDRESS);
 
+  kEnableSoftwareLocalAPIC();
+
+  kSetTaskPriority(0);
+
+  kInitializeLocalVectorTable();
+
+  kEnableInterrupt();
+
+  kPrintf("Application Processor[APIC ID: %d] Is Activated\n", kGetAPICID());
+
   qwTickCount = kGetTickCount();
   while (1) {
-    if (kGetTickCount() - qwTickCount > 1000 + 10 * kGetAPICID()) {
+    if (kGetTickCount() - qwTickCount > 1000) {
       qwTickCount = kGetTickCount();
       // kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
       //         kGetAPICID());
