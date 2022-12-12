@@ -1,6 +1,7 @@
 #pragma once
 
 #include "List.h"
+#include "Synchronization.h"
 #include "Types.h"
 
 #define TASK_REGISTERCOUNT (5 + 19)
@@ -104,6 +105,7 @@ typedef struct kTCBPoolManagerStruct {
 } TCBPOOLMANAGER;
 
 typedef struct kSchedulerStruct {
+  SPINLOCK stSpinLock;
   TCB *pstRunningTask;
   int iProcessorTime;
 

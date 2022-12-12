@@ -115,8 +115,8 @@ void MainForApplicationProcessor() {
   while (1) {
     if (kGetTickCount() - qwTickCount > 1000 + 10 * kGetAPICID()) {
       qwTickCount = kGetTickCount();
-      kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
-              kGetAPICID());
+      // kPrintf("Application Processor[APIC ID: %d] Is Activated\n",
+      //         kGetAPICID());
     }
   }
 }

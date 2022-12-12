@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Synchronization.h"
 #include "Types.h"
 
 #define WAIT_BUFFER for (i = 0; i < 0xFFFF; i++)
@@ -72,6 +73,8 @@ typedef struct kKeyMappingEntryStruct {
 #pragma pack(pop)
 
 typedef struct kKeyboardManagerStruct {
+  SPINLOCK stSpinLock;
+
   BOOL bShiftDown;
   BOOL bCapsLockOn;
   BOOL bNumLockOn;

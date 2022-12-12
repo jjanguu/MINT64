@@ -164,7 +164,8 @@ typedef struct kMPConfigurationManagerStruct {
 } MPCONFIGURATIONMANAGER;
 
 BOOL kFindMPFloatingPointerAddress(QWORD *pstAddress);
-BOOL kAnalysisMPConfigurationTable(void);
-MPCONFIGURATIONMANAGER *kGetMPConfigurationManager(void);
-void kPrintMPConfigurationTable(void);
-int kGetProcessorCount(void);
+BOOL kAnalysisMPConfigurationTable();
+MPCONFIGURATIONMANAGER *kGetMPConfigurationManager();
+void kPrintMPConfigurationTable();
+int kGetProcessorCount();
+IOAPICENTRY *kFindIOAPICEntryForISA();

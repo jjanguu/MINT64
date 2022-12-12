@@ -4,10 +4,13 @@
 #include "DynamicMemory.h"
 #include "FileSystem.h"
 #include "HardDisk.h"
+#include "IOAPIC.h"
+#include "InterruptHandler.h"
 #include "Keyboard.h"
 #include "LocalAPIC.h"
 #include "MPConfigurationTable.h"
 #include "MultiProcessor.h"
+#include "PIC.h"
 #include "PIT.h"
 #include "RTC.h"
 #include "SerialPort.h"
@@ -69,6 +72,13 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"showmpinfo", "Show MP Configuration Table Information",
      kShowMPConfigurationTable},
     {"startap", "Start Application Processor", kStartApplicationProcessor},
+    {"startsymmetricio", "Start Symmetric I/O Mode", kStartSymmetricIOMode},
+    {"showirqintinmap", "Show IRQ->INITIN Mapping Table",
+     kShowIRQINTINMappingTable},
+    {"showintproccount", "Show Interrupt Processing Count",
+     kShowInterruptProcessingCount},
+    {"startintloadbal", "Start Interrupt Load Balancing",
+     kStartInterruptLoadBalancing},
 };
 
 void kStartConsoleShell() {
@@ -1669,4 +1679,120 @@ static void kStartApplicationProcessor(const char *pcParameterBuffer) {
 
   kPrintf("Bootstrap Processor[APIC ID :%d] Start Application Processor\n",
           kGetAPICID());
+}
+static void kStartSymmetricIOMode(const char *pcParameterBuffer) {
+  MPCONFIGURATIONMANAGER *pstMPManager;
+  BOOL bInterruptFlag;
+
+  if (kAnalysisMPConfigurationTable() == FALSE) {
+    kPrintf("Analyze MP Configuration Table Fail\n");
+    return;
+  }
+
+  pstMPManager = kGetMPConfigurationManager();
+  if (pstMPManager->bUsePICMode == TRUE) {
+
+    kOutPortByte(0x22, 0x70);
+    kOutPortByte(0x23, 0x01);
+  }
+
+  kPrintf("Mask All PIC Controller Interrupt\n");
+  kMaskPICInterrupt(0xFFFF);
+
+  kPrintf("Enable Global Local APIC\n");
+  kEnableGlobalLocalAPIC();
+
+  kPrintf("Enable Software Local APIC\n");
+  kEnableSoftwareLocalAPIC();
+
+  kPrintf("Disable CPU Interrupt Flag\n");
+  bInterruptFlag = kSetInterruptFlag(FALSE);
+
+  kSetTaskPriority(0);
+
+  kInitializeLocalVectorTable();
+
+  kSetSymmetricIOMode(TRUE);
+
+  kPrintf("Initialize IO Redirection Table\n");
+  kInitializeIORedirectionTable();
+
+  kPrintf("Restore CPU Interrupt Flag\n");
+  kSetInterruptFlag(bInterruptFlag);
+
+  kPrintf("Change Symmetric I/O Mode Complete\n");
+}
+
+static void kShowIRQINTINMappingTable(const char *pcParameterBuffer) {
+
+  kPrintIRQToINTINMap();
+}
+static void kShowInterruptProcessingCount(const char *pcParameterBuffer) {
+  INTERRUPTMANAGER *pstInterruptManager;
+  int i;
+  int j;
+  int iProcessCount;
+  char vcBuffer[20];
+  int iRemainLength;
+  int iLineCount;
+
+  kPrintf("========================== Interrupt Count "
+          "==========================\n");
+
+  iProcessCount = kGetProcessorCount();
+
+  for (i = 0; i < iProcessCount; i++) {
+    if (i == 0) {
+      kPrintf("IRQ Num\t\t");
+    } else if ((i % 4) == 0) {
+      kPrintf("\n       \t\t");
+    }
+    kSPrintf(vcBuffer, "Core %d", i);
+    kPrintf(vcBuffer);
+
+    iRemainLength = 15 - kStrLen(vcBuffer);
+    kMemSet(vcBuffer, ' ', iRemainLength);
+    vcBuffer[iRemainLength] = '\0';
+    kPrintf(vcBuffer);
+  }
+  kPrintf("\n");
+
+  iLineCount = 0;
+  pstInterruptManager = kGetInterruptManager();
+  for (i = 0; i < INTERRUPT_MAXVECTORCOUNT; i++) {
+    for (j = 0; j < iProcessCount; j++) {
+      if (j == 0) {
+        if ((iLineCount != 0) && (iLineCount > 10)) {
+          kPrintf("\nPress any key to continue... ('q' is exit) : ");
+          if (kGetCh() == 'q') {
+            kPrintf("\n");
+            return;
+          }
+          iLineCount = 0;
+          kPrintf("\n");
+        }
+        kPrintf("--------------------------------------------------------------"
+                "-------\n");
+        kPrintf("IRQ %d\t\t", i);
+        iLineCount += 2;
+      } else if ((j % 4) == 0) {
+        kPrintf("\n      \t\t");
+        iLineCount++;
+      }
+
+      kSPrintf(vcBuffer, "0x%Q",
+               pstInterruptManager->vvqwCoreInterruptCount[j][i]);
+      kPrintf(vcBuffer);
+      iRemainLength = 15 - kStrLen(vcBuffer);
+      kMemSet(vcBuffer, ' ', iRemainLength);
+      vcBuffer[iRemainLength] = '\0';
+      kPrintf(vcBuffer);
+    }
+    kPrintf("\n");
+  }
+}
+
+static void kStartInterruptLoadBalancing(const char *pcParameterBuffer) {
+  kPrintf("Start Interrupt Load Balancing\n");
+  kSetInterruptLoadBalancing(TRUE);
 }

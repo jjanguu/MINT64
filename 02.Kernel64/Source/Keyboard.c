@@ -344,7 +344,7 @@ BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode,
 BOOL kInitializeKeyboard() {
   kInitializeQueue(&gs_stKeyQueue, gs_vstKeyQueueBuffer, KEY_MAXQUEUECOUNT,
                    sizeof(KEYDATA));
-
+  kInitializeSpinLock(&(gs_stKeyboardManager.stSpinLock));
   return kActivateKeyboard();
 }
 
@@ -357,11 +357,10 @@ BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode) {
 
   if (kConvertScanCodeToASCIICode(bScanCode, &(stData.bASCIICode),
                                   &(stData.bFlags))) {
-    bPreviousInterrrupt = kLockForSystemData();
+    kLockForSpinLock(&(gs_stKeyboardManager.stSpinLock));
 
     bResult = kPutQueue(&gs_stKeyQueue, &stData);
-
-    kUnlockForSystemData(bPreviousInterrrupt);
+    kUnlockForSpinLock(&(gs_stKeyboardManager.stSpinLock));
   }
   return bResult;
 }
@@ -373,10 +372,10 @@ BOOL kGetKeyFromKeyQueue(KEYDATA *pstData) {
   if (kIsQueueEmpty(&gs_stKeyQueue))
     return FALSE;
 
-  bPreviousInterrupt = kLockForSystemData();
+  kLockForSpinLock(&(gs_stKeyboardManager.stSpinLock));
 
   bResult = kGetQueue(&gs_stKeyQueue, pstData);
 
-  kUnlockForSystemData(bPreviousInterrupt);
+  kUnlockForSpinLock(&(gs_stKeyboardManager.stSpinLock));
   return bResult;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Synchronization.h"
 #include "Types.h"
 
 #define DYNAMICMEMORY_START_ADDRESS                                            \
@@ -17,6 +18,8 @@ typedef struct kBitmapStruct {
 } BITMAP;
 
 typedef struct kDynamicMemoryManagerStruct {
+  SPINLOCK stSpinLock;
+
   int iMaxLevelCount;
   int iBlockCountOfSmallestBlock;
   QWORD qwUsedSize;
