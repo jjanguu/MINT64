@@ -26,3 +26,4 @@ int kDecimalToString(long lValue, char *pcBuffer);
 int kSPrintf(char *pcBuffer, const char *pcFormatString, ...);
 int kVSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap);
 void kSleep(QWORD qwMillisecond);
+inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize);
