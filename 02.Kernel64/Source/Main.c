@@ -14,9 +14,11 @@
 #include "Task.h"
 #include "Types.h"
 #include "Utility.h"
+#include "VBE.h"
 
 void kPrintString(int iX, int iY, const char *pcString);
 void MainForApplicationProcessor();
+void kStartGraphicModeTest();
 
 void Main(void) {
   int iCursorX, iCursorY;
@@ -100,7 +102,11 @@ void Main(void) {
   kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM |
                   TASK_FLAGS_IDLE,
               0, 0, (QWORD)kIdleTask, kGetAPICID());
-  kStartConsoleShell();
+
+  if (*(BYTE *)VBE_STARTGRAPHICMODEFLAGADDRESS == 0)
+    kStartConsoleShell();
+  else
+    kStartGraphicModeTest();
 }
 
 void MainForApplicationProcessor() {
@@ -125,4 +131,31 @@ void MainForApplicationProcessor() {
   kPrintf("Application Processor[APIC ID: %d] Is Activated\n", kGetAPICID());
 
   kIdleTask();
+}
+
+void kStartGraphicModeTest() {
+  VBEMODEINFOBLOCK *pstVBEMode;
+  WORD *pwFrameBufferAddress;
+  WORD wColor = 0;
+  int iBandHeight;
+  int i;
+  int j;
+
+  kGetCh();
+
+  pstVBEMode = kGetVBEModeInfoBlock();
+  pwFrameBufferAddress = (WORD *)((QWORD)pstVBEMode->dwPhysicalBasePointer);
+
+  iBandHeight = pstVBEMode->wYResolution / 32;
+
+  while (1) {
+    for (j = 0; j < pstVBEMode->wYResolution; j++) {
+      for (i = 0; i < pstVBEMode->wXResolution; i++) {
+        pwFrameBufferAddress[(j * pstVBEMode->wXResolution) + i] = wColor;
+      }
+      if ((j % iBandHeight) == 0)
+        wColor = kRandom() & 0xFFFF;
+    }
+    kGetCh();
+  }
 }
