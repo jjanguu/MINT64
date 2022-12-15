@@ -1,9 +1,11 @@
 #include "Keyboard.h"
 #include "AssemblyUtility.h"
+#include "Mouse.h"
 #include "Queue.h"
 #include "Synchronization.h"
 #include "Types.h"
 #include "Utility.h"
+
 
 BOOL kIsOutputBufferFull() {
   if (kInPortByte(0x64) & 0x01) {
@@ -23,16 +25,28 @@ BOOL kWaitForACKAndPutOtherScanCode() {
   int i, j;
   BYTE bData;
   BOOL bResult = FALSE;
+  BOOL bMouseData;
 
   for (j = 0; j < 100; j++) {
     WAIT_OUT_BUFFER
+
+    if (kIsMouseDataInOutputBuffer() == TRUE) {
+      bMouseData = TRUE;
+    } else {
+      bMouseData = FALSE;
+    }
 
     bData = kInPortByte(0x60);
     if (bData == 0xFA) {
       bResult = TRUE;
       break;
-    } else
-      kConvertScanCodeAndPutQueue(bData);
+    } else {
+      if (bMouseData == FALSE) {
+        kConvertScanCodeAndPutQueue(bData);
+      } else {
+        kAccumulateMouseDataAndPutQueue(bData);
+      }
+    }
   }
   return bResult;
 }
