@@ -209,7 +209,6 @@ static int kFindFreeBlockInBitmap(int iBlockListIndex) {
   }
   return -1;
 }
-// asdf
 
 static void kSetFlagInBitmap(int iBlockListIndex, int iOffset, BYTE bFlag) {
   BYTE *pbBitmap;
