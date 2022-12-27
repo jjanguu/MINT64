@@ -1,5 +1,6 @@
 #include "Utility.h"
 #include "AssemblyUtility.h"
+#include "VBE.h"
 
 volatile QWORD g_qwTickCount = 0;
 
@@ -327,4 +328,11 @@ inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize) {
   for (i = 0; i < (iWordSize % 4); i++) {
     ((WORD *)pvDestination)[iRemainWordStartOffset++] = wData;
   }
+}
+
+BOOL kIsGraphicMode() {
+  if (*(BYTE *)VBE_STARTGRAPHICMODEFLAGADDRESS == 0)
+    return FALSE;
+
+  return TRUE;
 }

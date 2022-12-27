@@ -66,6 +66,8 @@
 #define EVENT_WINDOWMANAGER_UPDATESCREENBYWINDOWAREA 16
 #define EVENT_WINDOWMANAGER_UPDATESCREENBYSCREENAREA 17
 
+#define WINDOW_OVERLAPPEDAREALOGMAXCOUNT 20
+
 typedef struct kMouseEventStruct {
   QWORD qwWindowID;
 
@@ -133,7 +135,14 @@ typedef struct kWindowManagerStruct {
 
   QWORD qwMovingWindowID;
   BOOL bWindowMoveMode;
+
+  BYTE *pbDrawBitmap;
 } WINDOWMANAGER;
+
+typedef struct kDrawBitmapStruct {
+  RECT stArea;
+  BYTE *pbBitmap;
+} DRAWBITMAP;
 
 static void kInitializeWindowPool();
 static WINDOW *kAllocateWindow();
@@ -150,9 +159,9 @@ BOOL kDeleteAllWindowInTaskID(QWORD qwTaskID);
 WINDOW *kGetWindow(QWORD qwWindowID);
 WINDOW *kGetWindowWithWindowLock(QWORD qwWindowID);
 BOOL kShowWindow(QWORD qwWindowID, BOOL bShow);
-BOOL kRedrawWindowByArea(const RECT *pstArea);
+BOOL kRedrawWindowByArea(const RECT *pstArea, QWORD qwDrawWindowID);
 static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow,
-                                           const RECT *pstCopyArea);
+                                           DRAWBITMAP *pstDrawBitmap);
 
 QWORD kFindWindowByPoint(int iX, int iY);
 QWORD kFindWindowByTitle(const char *pcTitle);
@@ -205,3 +214,10 @@ BOOL kDrawText(QWORD qwWindowID, int iX, int iY, COLOR stTextColor,
 static void kDrawCursor(int iX, int iY);
 void kMoveCursor(int iX, int iY);
 void kGetCursorPosition(int *piX, int *piY);
+BOOL kCreateDrawBitmap(const RECT *pstArea, DRAWBITMAP *pstDrawBitmap);
+static BOOL kFillDrawBitmap(DRAWBITMAP *pstDrawBitmap, RECT *pstArea,
+                            BOOL bFill);
+inline BOOL kGetStartPositionInDrawBitmap(const DRAWBITMAP *pstDrawBitmap,
+                                          int iX, int iY, int *piByteOffset,
+                                          int *piBitOffset);
+inline BOOL kIsDrawBitmapAllOff(const DRAWBITMAP *pstDrawBitmap);
