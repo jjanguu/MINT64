@@ -16,3 +16,6 @@ void kSystemMonitorTask();
 static void kDrawProcessorInformation(QWORD qwWindowID, int iX, int iY,
                                       BYTE bAPICID);
 static void kDrawMemoryInformation(QWORD qwWindowID, int iY, int iWindowWidth);
+
+void kGUIConsoleShellTask();
+static void kProcessConsoleBuffer(QWORD qwWindowID);

@@ -21,18 +21,11 @@
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"help", "Show Help", kHelp},
-    {"clear", "Clear Screen", kClear},
+    {"cls", "Clear Screen", kClear},
     {"totalram", "Show Total RAM Size", kShowTotalRAMSize},
-    {"strtod", "String To Decial/Hex Convert", kStringToDecimalHexTest},
     {"shutdown", "Shutdown And Reboot OS", kShutdown},
-    {"settimer", "Set PIT Controller Counter0, ex)settimer 10(ms) 1(periodic)",
-     kSetTimer},
-    {"wait", "Wait ms Using PIT, ex)wait 100(ms)", kWaitUsingPIT},
-    {"rdtsc", "Read Time Stamp Counter", kReadTimeStampCounter},
     {"cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed},
     {"date", "Show Date And Time", kShowDateAndTime},
-    {"createtask", "Create Task, ex)createtask 1(type) 10(count)",
-     kCreateTestTask},
     {"changepriority",
      "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",
      kChangeTaskPriority},
@@ -40,15 +33,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"killtask", "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)",
      kKillTask},
     {"cpuload", "Show Processor Load", kCPULoad},
-    {"testmutex", "Test Mutex Function", kTestMutex},
-    {"testthread", "Test Thread And Process Function", kTestThread},
     {"showmatrix", "Show Matrix Screen", kShowMatrix},
-    {"testpie", "Test PIE Calculation", kTestPIE},
     {"dynamicmeminfo", "Show Dyanmic Memory Information",
      kShowDynamicMemoryInformation},
-    {"testseqalloc", "Test Sequential Allocation & Free",
-     kTestSequentialAllocation},
-    {"testranalloc", "Test Random Allocation & Free", kTestRandomAllocation},
     {"hddinfo", "Show HDD Information", kShowHDDInformation},
     {"readsector", "Read HDD Sector, ex)readsector 0(LBA) 10(count)",
      kReadSector},
@@ -65,22 +52,15 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"dir", "Show Directory", kShowRootDirectory},
     {"writefile", "Write Data To File, ex) writefile a.txt", kWriteDataToFile},
     {"readfile", "Read Data From File, ex) readfile a.txt", kReadDataFromFile},
-    {"testfileio", "Test File I/O Function", kTestFileIO},
-    {"testperformance", "Test File Read/WritePerformance", kTestPerformance},
     {"flush", "Flush File System Cache", kFlushCache},
     {"download", "Download Data From Serial, ex) download a.txt",
      kDownloadFile},
     {"showmpinfo", "Show MP Configuration Table Information",
      kShowMPConfigurationTable},
-    {"startap", "Start Application Processor", kStartApplicationProcessor},
-    {"startsymmetricio", "Start Symmetric I/O Mode", kStartSymmetricIOMode},
     {"showirqintinmap", "Show IRQ->INITIN Mapping Table",
      kShowIRQINTINMappingTable},
     {"showintproccount", "Show Interrupt Processing Count",
      kShowInterruptProcessingCount},
-    {"startintloadbal", "Start Interrupt Load Balancing",
-     kStartInterruptLoadBalancing},
-    {"starttaskloadbal", "Start Task Load Balancing", kStartTaskLoadBalancing},
     {"changeaffinity",
      "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)",
      kChangeTaskAffinity},
@@ -93,11 +73,17 @@ void kStartConsoleShell() {
   int iCommandBufferIndex = 0;
   BYTE bKey;
   int iCursorX, iCursorY;
+  CONSOLEMANAGER *pstConsoleManager;
+
+  pstConsoleManager = kGetConsoleManager();
 
   kPrintf(CONSOLESHELL_PROMPTMESSAGE);
 
-  while (1) {
+  while (pstConsoleManager->bExit == FALSE) {
     bKey = kGetCh();
+
+    if (pstConsoleManager->bExit == TRUE)
+      break;
 
     if (bKey == KEY_BACKSPACE) {
       if (iCommandBufferIndex > 0) {
@@ -121,7 +107,7 @@ void kStartConsoleShell() {
                (bKey == KEY_CAPSLOCK) || (bKey == KEY_NUMLOCK) ||
                (bKey == KEY_SCROLLLOCK)) {
       ;
-    } else {
+    } else if (bKey < 128) {
       if (bKey == KEY_TAB)
         bKey = ' ';
 
@@ -759,7 +745,7 @@ static void kDropCharactorThread(void) {
       }
     } else {
       for (i = 0; i < CONSOLE_HEIGHT - 1; i++) {
-        vcText[0] = i + kRandom();
+        vcText[0] = (i + kRandom()) % 128;
         kPrintStringXY(iX, i, vcText);
         kSleep(50);
       }

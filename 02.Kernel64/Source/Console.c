@@ -9,22 +9,58 @@ CONSOLEMANAGER gs_stConsoleManager = {
     0,
 };
 
+static CHARACTER gs_vstScreenBuffer[CONSOLE_WIDTH * CONSOLE_HEIGHT];
+static KEYDATA gs_vstKeyQueueBuffer[CONSOLE_GUIKEYQUEUE_MAXCOUNT];
+
 void kInitializeConsole(int iX, int iY) {
   kMemSet(&gs_stConsoleManager, 0, sizeof(gs_stConsoleManager));
+  kMemSet(&gs_vstScreenBuffer, 0, sizeof(gs_vstScreenBuffer));
+
+  if (kIsGraphicMode() == FALSE) {
+
+    gs_stConsoleManager.pstScreenBuffer =
+        (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+  } else {
+
+    gs_stConsoleManager.pstScreenBuffer = gs_vstScreenBuffer;
+
+    kInitializeQueue(&(gs_stConsoleManager.stKeyQueueForGUI),
+                     gs_vstKeyQueueBuffer, CONSOLE_GUIKEYQUEUE_MAXCOUNT,
+                     sizeof(KEYDATA));
+    kInitializeMutex(&(gs_stConsoleManager.stLock));
+  }
 
   kSetCursor(iX, iY);
 }
 
 void kSetCursor(int iX, int iY) {
   int iLinearValue;
+  int iOldX;
+  int iOldY;
+  int i;
 
   iLinearValue = iY * CONSOLE_WIDTH + iX;
+  if (kIsGraphicMode() == FALSE) {
+    kOutPortByte(VGA_PORT_INDEX, VGA_INDEX_UPPERCURSOR);
+    kOutPortByte(VGA_PORT_DATA, iLinearValue >> 8);
 
-  kOutPortByte(VGA_PORT_INDEX, VGA_INDEX_UPPERCURSOR);
-  kOutPortByte(VGA_PORT_DATA, iLinearValue >> 8);
+    kOutPortByte(VGA_PORT_INDEX, VGA_INDEX_LOWERCURSOR);
+    kOutPortByte(VGA_PORT_DATA, iLinearValue & 0xFF);
+  } else {
+    for (i = 0; i < CONSOLE_WIDTH * CONSOLE_HEIGHT; i++) {
 
-  kOutPortByte(VGA_PORT_INDEX, VGA_INDEX_LOWERCURSOR);
-  kOutPortByte(VGA_PORT_DATA, iLinearValue & 0xFF);
+      if ((gs_stConsoleManager.pstScreenBuffer[i].bCharactor == '_') &&
+          (gs_stConsoleManager.pstScreenBuffer[i].bAttribute == 0x00)) {
+        gs_stConsoleManager.pstScreenBuffer[i].bCharactor = ' ';
+        gs_stConsoleManager.pstScreenBuffer[i].bAttribute =
+            CONSOLE_DEFAULTTEXTCOLOR;
+        break;
+      }
+    }
+
+    gs_stConsoleManager.pstScreenBuffer[iLinearValue].bCharactor = '_';
+    gs_stConsoleManager.pstScreenBuffer[iLinearValue].bAttribute = 0x00;
+  }
 
   gs_stConsoleManager.iCurrentPrintOffset = iLinearValue;
 }
@@ -50,10 +86,12 @@ void kPrintf(const char *pcFormatString, ...) {
 }
 
 int kConsolePrintString(const char *pcBuffer) {
-  CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+  CHARACTER *pstScreen;
   int i, j;
   int iLength;
   int iPrintOffset;
+
+  pstScreen = gs_stConsoleManager.pstScreenBuffer;
 
   iPrintOffset = gs_stConsoleManager.iCurrentPrintOffset;
 
@@ -70,8 +108,7 @@ int kConsolePrintString(const char *pcBuffer) {
     }
 
     if (iPrintOffset >= (CONSOLE_HEIGHT * CONSOLE_WIDTH)) {
-      kMemCpy(CONSOLE_VIDEOMEMORYADDRESS,
-              CONSOLE_VIDEOMEMORYADDRESS + CONSOLE_WIDTH * sizeof(CHARACTER),
+      kMemCpy(pstScreen, pstScreen + CONSOLE_WIDTH,
               (CONSOLE_HEIGHT - 1) * CONSOLE_WIDTH * sizeof(CHARACTER));
 
       for (j = (CONSOLE_HEIGHT - 1) * (CONSOLE_WIDTH);
@@ -86,8 +123,10 @@ int kConsolePrintString(const char *pcBuffer) {
 }
 
 void kClearScreen() {
-  CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+  CHARACTER *pstScreen;
   int i;
+
+  pstScreen = gs_stConsoleManager.pstScreenBuffer;
 
   for (i = 0; i < CONSOLE_WIDTH * CONSOLE_HEIGHT; i++) {
     pstScreen[i].bCharactor = ' ';
@@ -100,17 +139,34 @@ BYTE kGetCh() {
   KEYDATA stData;
 
   while (1) {
-    while (kGetKeyFromKeyQueue(&stData) == FALSE) {
-      kSchedule();
+
+    if (kIsGraphicMode() == FALSE) {
+
+      while (kGetKeyFromKeyQueue(&stData) == FALSE) {
+        kSchedule();
+      }
     }
+
+    else {
+      while (kGetKeyFromGUIKeyQueue(&stData) == FALSE) {
+
+        if (gs_stConsoleManager.bExit == TRUE)
+          return 0xFF;
+
+        kSchedule();
+      }
+    }
+
     if (stData.bFlags & KEY_FLAGS_DOWN)
       return stData.bASCIICode;
   }
 }
 
 void kPrintStringXY(int iX, int iY, const char *pcString) {
-  CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+  CHARACTER *pstScreen;
   int i;
+
+  pstScreen = gs_stConsoleManager.pstScreenBuffer;
 
   pstScreen += (iY * 80) + iX;
 
@@ -119,3 +175,37 @@ void kPrintStringXY(int iX, int iY, const char *pcString) {
     pstScreen[i].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
   }
 }
+
+CONSOLEMANAGER *kGetConsoleManager() { return &gs_stConsoleManager; }
+
+BOOL kGetKeyFromGUIKeyQueue(KEYDATA *pstData) {
+  BOOL bResult;
+
+  if (kIsQueueEmpty(&(gs_stConsoleManager.stKeyQueueForGUI)) == TRUE)
+    return FALSE;
+
+  kLock(&(gs_stConsoleManager.stLock));
+
+  bResult = kGetQueue(&(gs_stConsoleManager.stKeyQueueForGUI), pstData);
+
+  kUnlock(&(gs_stConsoleManager.stLock));
+
+  return bResult;
+}
+
+BOOL kPutKeyToGUIKeyQueue(KEYDATA *pstData) {
+  BOOL bResult;
+
+  if (kIsQueueFull(&(gs_stConsoleManager.stKeyQueueForGUI)) == TRUE)
+    return FALSE;
+
+  kLock(&(gs_stConsoleManager.stLock));
+
+  bResult = kPutQueue(&(gs_stConsoleManager.stKeyQueueForGUI), pstData);
+
+  kUnlock(&(gs_stConsoleManager.stLock));
+
+  return bResult;
+}
+
+void kSetConsoleShellExitFlag(BOOL bFlag) { gs_stConsoleManager.bExit = bFlag; }
