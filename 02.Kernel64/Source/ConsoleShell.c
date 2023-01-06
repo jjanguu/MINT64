@@ -21,7 +21,7 @@
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"help", "Show Help", kHelp},
-    {"cls", "Clear Screen", kClear},
+    {"clear", "Clear Screen", kClear},
     {"totalram", "Show Total RAM Size", kShowTotalRAMSize},
     {"shutdown", "Shutdown And Reboot OS", kShutdown},
     {"cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed},

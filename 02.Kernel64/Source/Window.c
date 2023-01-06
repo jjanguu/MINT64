@@ -2,6 +2,7 @@
 #include "Console.h"
 #include "DynamicMemory.h"
 #include "Font.h"
+#include "JPEG.h"
 #include "MultiProcessor.h"
 #include "Task.h"
 #include "Utility.h"
@@ -11,7 +12,7 @@ static WINDOWPOOLMANAGER gs_stWindowPoolManager;
 
 static WINDOWMANAGER gs_stWindowManager;
 
-static void kInitializeWindowPool(void) {
+static void kInitializeWindowPool() {
   int i;
   void *pvWindowPoolAddress;
 
@@ -37,7 +38,7 @@ static void kInitializeWindowPool(void) {
   kInitializeMutex(&(gs_stWindowPoolManager.stLock));
 }
 
-static WINDOW *kAllocateWindow(void) {
+static WINDOW *kAllocateWindow() {
   WINDOW *pstEmptyWindow;
   int i;
 
@@ -87,7 +88,7 @@ static void kFreeWindow(QWORD qwID) {
   kUnlock(&(gs_stWindowPoolManager.stLock));
 }
 
-void kInitializeGUISystem(void) {
+void kInitializeGUISystem() {
   VBEMODEINFOBLOCK *pstModeInfo;
   QWORD qwBackgroundWindowID;
   EVENT *pstEventBuffer;
@@ -142,7 +143,122 @@ void kInitializeGUISystem(void) {
   kDrawRect(qwBackgroundWindowID, 0, 0, pstModeInfo->wXResolution - 1,
             pstModeInfo->wYResolution - 1, WINDOW_COLOR_SYSTEMBACKGROUND, TRUE);
 
+  kDrawBackgroundImage();
+
   kShowWindow(qwBackgroundWindowID, TRUE);
+}
+
+BOOL kBitBlt(QWORD qwWindowID, int iX, int iY, COLOR *pstBuffer, int iWidth,
+             int iHeight) {
+  WINDOW *pstWindow;
+  RECT stWindowArea;
+  RECT stBufferArea;
+  RECT stOverlappedArea;
+  int iWindowWdith;
+  int iOverlappedWidth;
+  int iOverlappedHeight;
+  int i;
+  int j;
+  int iWindowPosition;
+  int iBufferPosition;
+  int iStartX;
+  int iStartY;
+
+  pstWindow = kGetWindowWithWindowLock(qwWindowID);
+  if (pstWindow == NULL) {
+    return FALSE;
+  }
+
+  kSetRectangleData(0, 0, pstWindow->stArea.iX2 - pstWindow->stArea.iX1,
+                    pstWindow->stArea.iY2 - pstWindow->stArea.iY1,
+                    &stWindowArea);
+
+  kSetRectangleData(iX, iY, iX + iWidth - 1, iY + iHeight - 1, &stBufferArea);
+
+  if (kGetOverlappedRectangle(&stWindowArea, &stBufferArea,
+                              &stOverlappedArea) == FALSE) {
+
+    kUnlock(&pstWindow->stLock);
+    return FALSE;
+  }
+
+  iWindowWdith = kGetRectangleWidth(&stWindowArea);
+  iOverlappedWidth = kGetRectangleWidth(&stOverlappedArea);
+  iOverlappedHeight = kGetRectangleHeight(&stOverlappedArea);
+
+  if (iX < 0) {
+    iStartX = iX;
+  } else {
+    iStartX = 0;
+  }
+
+  if (iY < 0) {
+    iStartY = iY;
+  } else {
+    iStartY = 0;
+  }
+
+  for (j = 0; j < iOverlappedHeight; j++) {
+
+    iWindowPosition =
+        (iWindowWdith * (stOverlappedArea.iY1 + j)) + stOverlappedArea.iX1;
+    iBufferPosition = (iWidth * j + iStartY) + iStartX;
+
+    kMemCpy(pstWindow->pstWindowBuffer + iWindowPosition,
+            pstBuffer + iBufferPosition, iOverlappedWidth * sizeof(COLOR));
+  }
+
+  kUnlock(&pstWindow->stLock);
+  return TRUE;
+}
+
+extern unsigned char g_vbWallPaper[0];
+extern unsigned int size_g_vbWallPaper;
+
+void kDrawBackgroundImage(void) {
+  JPEG *pstJpeg;
+  COLOR *pstOutputBuffer;
+  WINDOWMANAGER *pstWindowManager;
+  int i;
+  int j;
+  int iMiddleX;
+  int iMiddleY;
+  int iScreenWidth;
+  int iScreenHeight;
+
+  pstWindowManager = kGetWindowManager();
+
+  pstJpeg = (JPEG *)kAllocateMemory(sizeof(JPEG));
+
+  if (kJPEGInit(pstJpeg, g_vbWallPaper, size_g_vbWallPaper) == FALSE) {
+    return;
+  }
+
+  pstOutputBuffer = (COLOR *)kAllocateMemory(pstJpeg->width * pstJpeg->height *
+                                             sizeof(COLOR));
+  if (pstOutputBuffer == NULL) {
+    kFreeMemory(pstJpeg);
+    return;
+  }
+
+  if (kJPEGDecode(pstJpeg, pstOutputBuffer) == FALSE) {
+
+    kFreeMemory(pstOutputBuffer);
+    kFreeMemory(pstJpeg);
+    return;
+  }
+
+  iScreenWidth = kGetRectangleWidth(&(pstWindowManager->stScreenArea));
+  iScreenHeight = kGetRectangleHeight(&(pstWindowManager->stScreenArea));
+
+  iMiddleX = (iScreenWidth - pstJpeg->width) / 2;
+  iMiddleY = (iScreenHeight - pstJpeg->height) / 2;
+
+  kBitBlt(pstWindowManager->qwBackgoundWindowID, iMiddleX, iMiddleY,
+          pstOutputBuffer, pstJpeg->width, pstJpeg->height);
+
+  kFreeMemory(pstOutputBuffer);
+  kFreeMemory(pstJpeg);
 }
 
 WINDOWMANAGER *kGetWindowManager(void) { return &gs_stWindowManager; }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.h"
+#include "Window.h"
 
 #define EVENT_USER_TESTMESSAGE 0x80000001
 #define SYSTEMMONITOR_PROCESSOR_WIDTH 150
@@ -19,3 +20,9 @@ static void kDrawMemoryInformation(QWORD qwWindowID, int iY, int iWindowWidth);
 
 void kGUIConsoleShellTask();
 static void kProcessConsoleBuffer(QWORD qwWindowID);
+
+void kImageViewerTask();
+static void kDrawFileName(QWORD qwWindowID, RECT *pstArea, char *pcFileName,
+                          int iNameLength);
+static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
+                                               const char *pcFileName);
