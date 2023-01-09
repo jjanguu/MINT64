@@ -32,7 +32,8 @@ void kBaseGUITask() {
   iWindowHeight = 200;
 
   qwWindowID = kCreateWindow(iMouseX - 10, iMouseY - WINDOW_TITLEBAR_HEIGHT / 2,
-                             iWindowWidth, iWindowHeight, WINDOW_FLAGS_DEFAULT,
+                             iWindowWidth, iWindowHeight,
+                             WINDOW_FLAGS_DEFAULT | WINDOW_FLAGS_RESIZABLE,
                              "Hello World Window");
 
   if (qwWindowID == WINDOW_INVALIDID)
@@ -835,6 +836,7 @@ static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
   JPEG *pstJpeg;
   EVENT stReceivedEvent;
   KEYEVENT *pstKeyEvent;
+  BOOL bExit;
 
   fp = NULL;
   pbFileBuffer = NULL;
@@ -900,11 +902,12 @@ static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
 
     kGetScreenArea(&stScreenArea);
 
-    qwWindowID =
-        kCreateWindow((stScreenArea.iX2 - pstJpeg->width) / 2,
-                      (stScreenArea.iY2 - pstJpeg->height) / 2, pstJpeg->width,
-                      pstJpeg->height + WINDOW_TITLEBAR_HEIGHT,
-                      WINDOW_FLAGS_DEFAULT & ~WINDOW_FLAGS_SHOW, pcFileName);
+    qwWindowID = kCreateWindow(
+        (stScreenArea.iX2 - pstJpeg->width) / 2,
+        (stScreenArea.iY2 - pstJpeg->height) / 2, pstJpeg->width,
+        pstJpeg->height + WINDOW_TITLEBAR_HEIGHT,
+        WINDOW_FLAGS_DEFAULT & ~WINDOW_FLAGS_SHOW | WINDOW_FLAGS_RESIZABLE,
+        pcFileName);
   }
 
   if ((qwWindowID == WINDOW_INVALIDID) || (pstOutputBuffer == NULL)) {
@@ -928,13 +931,12 @@ static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
   }
 
   kFreeMemory(pbFileBuffer);
-  kFreeMemory(pstJpeg);
-  kFreeMemory(pstOutputBuffer);
   kShowWindow(qwWindowID, TRUE);
 
   kShowWindow(qwMainWindowID, FALSE);
 
-  while (1) {
+  bExit = FALSE;
+  while (bExit == FALSE) {
 
     if (kReceiveEventFromWindowQueue(qwWindowID, &stReceivedEvent) == FALSE) {
       kSleep(0);
@@ -949,8 +951,14 @@ static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
       if (pstKeyEvent->bASCIICode == KEY_ESC) {
         kDeleteWindow(qwWindowID);
         kShowWindow(qwMainWindowID, TRUE);
-        return TRUE;
+        bExit = TRUE;
       }
+      break;
+
+    case EVENT_WINDOW_RESIZE:
+      kBitBlt(qwWindowID, 0, WINDOW_TITLEBAR_HEIGHT, pstOutputBuffer,
+              pstJpeg->width, pstJpeg->height);
+      kShowWindow(qwWindowID, TRUE);
       break;
 
     case EVENT_WINDOW_CLOSE:
@@ -958,7 +966,7 @@ static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
       if (stReceivedEvent.qwType == EVENT_WINDOW_CLOSE) {
         kDeleteWindow(qwWindowID);
         kShowWindow(qwMainWindowID, TRUE);
-        return TRUE;
+        bExit = TRUE;
       }
       break;
 
@@ -967,5 +975,7 @@ static BOOL kCreateImageViewerWindowAndExecute(QWORD qwMainWindowID,
       break;
     }
   }
+  kFreeMemory(pstJpeg);
+  kFreeMemory(pstOutputBuffer);
   return TRUE;
 }
