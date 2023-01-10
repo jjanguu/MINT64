@@ -4,8 +4,7 @@
 #include "Types.h"
 
 #define DYNAMICMEMORY_START_ADDRESS                                            \
-  ((TASK_STACKPOOLADDRESS + (TASK_STACKSIZE * TASK_MAXCOUNT) + 0xfffff) &      \
-   0xfffffffffff00000)
+  ((TASK_STACKPOOLADDRESS + 0x1fffff) & 0xffffffffffe00000)
 
 #define DYNAMICMEMORY_MIN_SIZE (1 * 1024)
 

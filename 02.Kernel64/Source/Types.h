@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __TYPES_H__
+#define __TYPES_H__
 
 #define BYTE unsigned char
 #define WORD unsigned short
@@ -22,3 +23,4 @@ typedef struct kCharactorStruct {
 } CHARACTER;
 
 #pragma pack(pop)
+#endif /*__TYPES_H__*/

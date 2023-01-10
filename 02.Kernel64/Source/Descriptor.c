@@ -21,6 +21,10 @@ void kInitializeGDTTableAndTSS() {
                 GDT_FLAGS_LOWER_KERNELCODE, GDT_TYPE_CODE);
   kSetGDTEntry8(&(pstEntry[2]), 0, 0xFFFFF, GDT_FLAGS_UPPER_DATA,
                 GDT_FLAGS_LOWER_KERNELDATA, GDT_TYPE_DATA);
+  kSetGDTEntry8(&(pstEntry[3]), 0, 0xFFFFF, GDT_FLAGS_UPPER_DATA,
+                GDT_FLAGS_LOWER_USERDATA, GDT_TYPE_DATA);
+  kSetGDTEntry8(&(pstEntry[4]), 0, 0xFFFFF, GDT_FLAGS_UPPER_CODE,
+                GDT_FLAGS_LOWER_USERCODE, GDT_TYPE_CODE);
 
   for (i = 0; i < MAXPROCESSORCOUNT; i++) {
     kSetGDTEntry16((GDTENTRY16 *)&(pstEntry[GDT_MAXENTRY8COUNT + (i * 2)]),
