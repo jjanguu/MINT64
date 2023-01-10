@@ -24,7 +24,7 @@ void kInitializePageTables() {
   pstPDPTEntry = (PDPTENTRY *)0x101000;
   for (i = 0; i < 64; i++) {
     kSetPageEntryData((pstPDPTEntry + i), 0, 0x102000 + (i * PAGE_TABLESIZE),
-                      PAGE_FLAGS_DEFAULT, 0);
+                      PAGE_FLAGS_DEFAULT | PAGE_FLAGS_US, 0);
   }
   for (i = 64; i < PAGE_MAXENTRYCOUNT; i++) {
     kSetPageEntryData((pstPDPTEntry + i), 0, 0, 0, 0);
