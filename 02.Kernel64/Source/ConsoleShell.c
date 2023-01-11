@@ -15,6 +15,7 @@
 #include "RTC.h"
 #include "SerialPort.h"
 #include "Synchronization.h"
+#include "SystemCall.h"
 #include "Task.h"
 #include "Utility.h"
 #include "VBE.h"
@@ -65,6 +66,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
      "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)",
      kChangeTaskAffinity},
     {"vbemodeinfo", "Show VBE Mode Information", kShowVBEModeInfo},
+    {"testsystemcall", "Test System Call Operation", kTestSystemCall},
 
 };
 
@@ -1693,7 +1695,7 @@ static void kDownloadFile(const char *pcParameterBuffer) {
       kSleep(0);
 
       if ((kGetTickCount() - qwLastReceivedTickCount) > 30000) {
-        kPrintf("Time Out Occur~!!\n");
+        kPrintf("Time Out Occur\n");
         return;
       }
     } else {
@@ -1739,7 +1741,7 @@ static void kDownloadFile(const char *pcParameterBuffer) {
       kSleep(0);
 
       if ((kGetTickCount() - qwLastReceivedTickCount) > 10000) {
-        kPrintf("Time Out Occur~!!\n");
+        kPrintf("Time Out Occur\n");
         break;
       }
     }
@@ -1952,4 +1954,17 @@ static void kShowVBEModeInfo(const char *pcParameterBuffer) {
   kPrintf("Linear Blue Mask Size: %d, Field Position: %d\n",
           pstModeInfo->bLinearBlueMaskSize,
           pstModeInfo->bLinearBlueFieldPosition);
+}
+
+static void kTestSystemCall(const char *pcParameterBuffer) {
+  BYTE *pbUserMemory;
+
+  pbUserMemory = kAllocateMemory(0x1000);
+  if (pbUserMemory == NULL)
+    return;
+
+  kMemCpy(pbUserMemory, kSystemCallTestTask, 0x1000);
+
+  kCreateTask(TASK_FLAGS_USERLEVEL | TASK_FLAGS_PROCESS, pbUserMemory, 0x1000,
+              (QWORD)pbUserMemory, TASK_LOADBALANCINGID);
 }

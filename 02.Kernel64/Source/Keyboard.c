@@ -6,7 +6,6 @@
 #include "Types.h"
 #include "Utility.h"
 
-
 BOOL kIsOutputBufferFull() {
   if (kInPortByte(0x64) & 0x01) {
     return TRUE;

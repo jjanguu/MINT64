@@ -16,6 +16,7 @@
 #include "PIC.h"
 #include "PIT.h"
 #include "SerialPort.h"
+#include "SystemCall.h"
 #include "Task.h"
 #include "Types.h"
 #include "Utility.h"
@@ -129,6 +130,10 @@ void Main() {
     kPrintf("Fail\n");
   }
 
+  kPrintf("System Call MSR Initialize..................[Pass]\n");
+  iCursorY++;
+  kInitializeSystemCall();
+
   kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM |
                   TASK_FLAGS_IDLE,
               0, 0, (QWORD)kIdleTask, kGetAPICID());
@@ -159,6 +164,8 @@ void MainForApplicationProcessor() {
   kEnableInterrupt();
 
   kIdleTask();
+
+  kInitializeSystemCall();
 }
 
 BOOL kChangeToMultiCoreMode() {

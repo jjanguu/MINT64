@@ -47,7 +47,7 @@ kSwitchAndExecute64bitKernel:
     mov ecx, 0xC0000080
     rdmsr
 
-    or eax, 0x0100
+    or eax, 0x0101
 
     wrmsr
 

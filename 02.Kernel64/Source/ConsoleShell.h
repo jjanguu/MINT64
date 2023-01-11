@@ -75,3 +75,4 @@ static void kStartInterruptLoadBalancing(const char *pcParameterBuffer);
 static void kStartTaskLoadBalancing(const char *pcParameterBuffer);
 static void kChangeTaskAffinity(const char *pcParameterBuffer);
 static void kShowVBEModeInfo(const char *pcParameterBuffer);
+static void kTestSystemCall(const char *pcParameterBuffer);

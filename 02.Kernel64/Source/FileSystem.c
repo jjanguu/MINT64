@@ -210,7 +210,7 @@ static CACHEBUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex) {
   if (pstCacheBuffer == NULL) {
     pstCacheBuffer = kGetVictimInCacheBuffer(iCacheTableIndex);
     if (pstCacheBuffer == NULL) {
-      kPrintf("Cache Allocate Fail~!!!!\n");
+      kPrintf("Cache Allocate Fail\n");
       return NULL;
     }
 
@@ -220,7 +220,7 @@ static CACHEBUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex) {
       case CACHE_CLUSTERLINKTABLEAREA:
         if (kInternalWriteClusterLinkTableWithoutCache(
                 pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE) {
-          kPrintf("Cache Buffer Write Fail~!!!!\n");
+          kPrintf("Cache Buffer Write Fail\n");
           return NULL;
         }
         break;
@@ -228,7 +228,7 @@ static CACHEBUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex) {
       case CACHE_DATAAREA:
         if (kInternalWriteClusterWithoutCache(
                 pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE) {
-          kPrintf("Cache Buffer Write Fail~!!!!\n");
+          kPrintf("Cache Buffer Write Fail\n");
           return NULL;
         }
         break;

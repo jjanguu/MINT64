@@ -93,7 +93,7 @@ void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode) {
   pstTask = kGetRunningTask(bAPICID);
 
   kPrintStringXY(0, 0, "====================================================");
-  kPrintStringXY(0, 1, "                 Exception Occur~!!!!               ");
+  kPrintStringXY(0, 1, "                 Exception Occur               ");
 
   kSPrintf(vcBuffer, "     Vector:%d     Core ID:0x%X     ErrorCode:0x%X  ",
            iVectorNumber, bAPICID, qwErrorCode);

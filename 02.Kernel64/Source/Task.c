@@ -827,6 +827,8 @@ void kIdleTask(void) {
           }
 
           else {
+            if (pstTask->qwFlags & TASK_FLAGS_USERLEVEL)
+              kFreeMemory(pstTask->pvMemoryAddress);
           }
         } else if (pstTask->qwFlags & TASK_FLAGS_THREAD) {
 
