@@ -642,7 +642,4 @@ void Sleep(QWORD qwMillisecond) {
   ExecuteSystemCall(SYSCALL_SLEEP, &stParameter);
 }
 
-/**
- *  그래픽 모드인지 여부를 반환
- */
 BOOL IsGraphicMode(void) { ExecuteSystemCall(SYSCALL_ISGRAPHICMODE, NULL); }

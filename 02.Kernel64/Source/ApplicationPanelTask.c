@@ -22,7 +22,7 @@ void kApplicationPanelGUITask() {
 
   if (kIsGraphicMode() == FALSE) {
 
-    kPrintf("This task can run only GUI mode~!!!\n");
+    kPrintf("This task can run only GUI mode\n");
     return;
   }
 

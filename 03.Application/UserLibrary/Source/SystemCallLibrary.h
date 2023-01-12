@@ -63,6 +63,7 @@ BOOL ShowWindow(QWORD qwWindowID, BOOL bShow);
 QWORD FindWindowByPoint(int iX, int iY);
 QWORD FindWindowByTitle(const char *pcTitle);
 BOOL IsWindowExist(QWORD qwWindowID);
+BOOL IsGraphicMode(void);
 QWORD GetTopWindowID(void);
 BOOL MoveWindowToTop(QWORD qwWindowID);
 BOOL IsInTitleBar(QWORD qwWindowID, int iX, int iY);

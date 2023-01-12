@@ -1,7 +1,18 @@
 [BITS 64]
 
 SECTION .text
-global ExecuteSystemCall
+global _START, ExecuteSystemCall
+extern Main, exit
+
+_START:
+    call Main
+
+    mov rdi, rax
+    call exit
+
+    jmp $
+
+    ret
 
 ExecuteSystemCall:
     push rcx

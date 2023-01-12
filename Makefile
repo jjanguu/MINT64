@@ -1,4 +1,4 @@
-all: BootLoader Kernel32 Kernel64 Disk.img
+all: BootLoader Kernel32 Kernel64 Disk.img Application
 
 BootLoader:
 	@echo 
@@ -43,9 +43,21 @@ Disk.img: 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin 02.Kernel64/Kern
 	@echo 
 	@echo ============= All Build Complete =============
 	@echo 
+
+Application:
+	@echo
+	@echo =========== Application Build Start ===========
+	@echo
+
+	make -C 03.Application
+
+	@echo
+	@echo  =========== Application Build Complete ===========
+	@echo
 	
 clean:
 	make -C 00.BootLoader clean
 	make -C 01.Kernel32 clean
 	make -C 02.Kernel64 clean
+	make -C 03.Application clean
 	rm -f Disk.img	
