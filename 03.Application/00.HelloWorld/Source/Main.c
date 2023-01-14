@@ -28,7 +28,7 @@ int Main(char *pcArgument) {
   if (IsGraphicMode() == FALSE) {
 
     printf("This task can run only GUI mode\n");
-    return;
+    return -1;
   }
 
   GetCursorPosition(&iMouseX, &iMouseY);
@@ -42,7 +42,7 @@ int Main(char *pcArgument) {
                             vcTempBuffer);
 
   if (qwWindowID == WINDOW_INVALIDID)
-    return;
+    return -1;
 
   iY = WINDOW_TITLEBAR_HEIGHT + 10;
 
@@ -165,7 +165,7 @@ int Main(char *pcArgument) {
       if (stReceivedEvent.qwType == EVENT_WINDOW_CLOSE) {
 
         DeleteWindow(qwWindowID);
-        return;
+        return -1;
       }
       break;
 

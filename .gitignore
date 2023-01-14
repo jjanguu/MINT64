@@ -3,6 +3,7 @@
 *.elf
 *.o
 *.dep
+*.a
 ImageMaker
 *.json
 NetworkTransfer
