@@ -163,9 +163,9 @@ void MainForApplicationProcessor() {
 
   kEnableInterrupt();
 
-  kIdleTask();
-
   kInitializeSystemCall();
+
+  kIdleTask();
 }
 
 BOOL kChangeToMultiCoreMode() {

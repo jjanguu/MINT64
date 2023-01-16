@@ -13,8 +13,8 @@
 #define HDD_PORT_INDEX_CYLINDERMSB 0x05
 #define HDD_PORT_INDEX_DRIVEANDHEAD 0x06
 #define HDD_PORT_INDEX_STATUS 0x07
-#define HDD_PORT_INDEX_COMMAND 0X07
-#define HDD_PORT_INDEX_DIGITALOUTPUT 0X206
+#define HDD_PORT_INDEX_COMMAND 0x07
+#define HDD_PORT_INDEX_DIGITALOUTPUT 0x206
 
 #define HDD_COMMAND_READ 0x20
 #define HDD_COMMAND_WRITE 0x30
@@ -36,10 +36,13 @@
 #define HDD_DIGITALOUTPUT_DISABLEINTERRUPT 0x01
 
 #define HDD_WAITTIME 500
+
 #define HDD_MAXBULKSECTORCOUNT 256
 
 #pragma pack(push, 1)
+
 typedef struct kHDDInformationStruct {
+
   WORD wConfiguation;
 
   WORD wNumberOfCylinder;
@@ -56,7 +59,7 @@ typedef struct kHDDInformationStruct {
 
   WORD vwSerialNumber[10];
   WORD wControllerType;
-  WORD wBfferSize;
+  WORD wBufferSize;
   WORD wNumberOfECCBytes;
   WORD vwFirmwareRevision[4];
 
@@ -70,6 +73,7 @@ typedef struct kHDDInformationStruct {
 #pragma pack(pop)
 
 typedef struct kHDDManagerStruct {
+
   BOOL bHDDDetected;
   BOOL bCanWrite;
 
@@ -80,7 +84,7 @@ typedef struct kHDDManagerStruct {
   HDDINFORMATION stHDDInformation;
 } HDDMANAGER;
 
-BOOL kInitializeHDD();
+BOOL kInitializeHDD(void);
 BOOL kReadHDDInformation(BOOL bPrimary, BOOL bMaster,
                          HDDINFORMATION *pstHDDInformation);
 int kReadHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount,
