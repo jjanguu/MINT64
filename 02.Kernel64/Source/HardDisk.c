@@ -1,4 +1,7 @@
 #include "HardDisk.h"
+#include "AssemblyUtility.h"
+#include "Console.h"
+#include "Utility.h"
 
 static HDDMANAGER gs_stHDDManager;
 
