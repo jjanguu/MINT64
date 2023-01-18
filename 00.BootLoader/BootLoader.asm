@@ -25,7 +25,7 @@ START:
     mov sp, 0xFFFE
     mov bp, 0xFFFE
 
-    mov si, 0
+    mov byte[ BOOTDRIVE ], dl
 
 .SCREENCLEARLOOP:
     mov byte [ es: si ], 0
@@ -52,10 +52,22 @@ START:
 
 RESETDISK:
     mov ax, 0
-    mov dl, 0
+    mov dl, byte [BOOTDRIVE]
     int 0x13
 
     jc HANDLEDISKERROR
+
+    mov ah, 0x08
+    mov dl, byte [BOOTDRIVE]
+    int 0x13
+    jc HANDLEDISKERROR
+
+    mov byte [LASTHEAD], dh
+    mov al, cl
+    and al, 0x3f
+
+    mov byte [LASTSECTOR], al
+    mov byte [LASTTRACK], ch
 
     mov si, 0x1000
     mov es, si
@@ -74,7 +86,7 @@ READDATA:
     mov ch, byte [ TRACKNUMBER ]
     mov cl, byte [ SECTORNUMBER ]
     mov dh, byte [ HEADNUMBER ]
-    mov dl, 0x00
+    mov dl, byte [BOOTDRIVE]
     int 0x13
     jc HANDLEDISKERROR
 
@@ -85,15 +97,20 @@ READDATA:
     mov al, byte [ SECTORNUMBER ]
     add al, 0x01
     mov byte [ SECTORNUMBER ], al
-    cmp al, 37
-    jl READDATA
+    cmp al, byte [LASTSECTOR]
+    jle READDATA
 
-    xor byte [ HEADNUMBER ], 0x01
+    add byte [ HEADNUMBER ], 0x01
     mov byte [ SECTORNUMBER ], 0x01
 
-    cmp byte [ HEADNUMBER ], 0x00
-    jne READDATA
+    mov al, byte [LASTHEAD]
+    cmp byte [ HEADNUMBER ], al
+    jg .ADDTRACK
 
+    jmp READDATA
+
+.ADDTRACK:
+    mov byte [HEADNUMBER], 0x00
     add byte [ TRACKNUMBER ], 0x01
     jmp READDATA
 
@@ -195,7 +212,6 @@ PRINTMESSAGE:
     ret
 
 MESSAGE1: db 'MINT64 OS Boot Loader Start by jjangu', 0
-
 DISKERRORMESSAGE: db 'DISK Error!!', 0
 IMAGELOADINGMESSAGE: db 'OS Image Loading.....', 0
 LOADINGCOMPLETEMESSAGE: db 'Complete', 0
@@ -204,6 +220,11 @@ CHANGEGRAPHICMODEFAIL: db 'Change Graphic Mode Fail', 0
 SECTORNUMBER: db 0x02
 HEADNUMBER: db 0x00
 TRACKNUMBER: db 0x00
+
+BOOTDRIVE: db 0x00
+LASTSECTOR: db 0x00
+LASTHEAD: db 0x00
+LASTTRACK: db 0x00
 
 times 510 - ( $ - $$ )   db  0x00
 db 0x55
