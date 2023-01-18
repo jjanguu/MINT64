@@ -1,1 +1,1 @@
-clear;make clean;make;qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -hda ./HDD.img -boot a -M pc -serial tcp::4444,server,nowait -smp 16 -rtc base=localtime,clock=host
+clear;make clean;make;qemu-system-x86_64 -L . -m 64 -fda ./DiskWithPackage.img -boot a -M pc -smp 4 -rtc base=localtime,clock=host

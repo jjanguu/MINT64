@@ -70,6 +70,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"testsystemcall", "Test System Call Operation", kTestSystemCall},
     {"exec", "Execute Application Program, ex)exec a.elf argument",
      kExecuteApplicationProgram},
+    {"installpackage", "Install Package To HDD", kInstallPackage},
 
 };
 
@@ -1992,4 +1993,58 @@ static void kExecuteApplicationProgram(const char *pcParameterBuffer) {
 
   qwID = kExecuteProgram(vcFileName, vcArgumentString, TASK_LOADBALANCINGID);
   kPrintf("Task ID = 0x%Q\n", qwID);
+}
+
+static void kInstallPackage(const char *pcParameterBuffer) {
+  PACKAGEHEADER *pstHeader;
+  PACKAGEITEM *pstItem;
+  WORD wKernelTotalSectorCount;
+  int i;
+  FILE *fp;
+  QWORD qwDataAddress;
+
+  kPrintf("Package Install Start...\n");
+
+  wKernelTotalSectorCount = *((WORD *)0x7C05);
+
+  pstHeader = (PACKAGEHEADER *)((QWORD)0x10000 + wKernelTotalSectorCount * 512);
+
+  if (kMemCmp(pstHeader->vcSignature, "MINT64OSPACKAGE ",
+              sizeof(pstHeader->vcSignature)) != 0) {
+    kPrintf("Package Signature Fail\n");
+    return;
+  }
+
+  qwDataAddress = (QWORD)pstHeader + pstHeader->dwHeaderSize;
+
+  pstItem = pstHeader->vstItem;
+
+  for (i = 0; i < pstHeader->dwHeaderSize / sizeof(PACKAGEITEM); i++) {
+    kPrintf("[%d] file: %s, size: %d Byte\n", i + 1, pstItem[i].vcFileName,
+            pstItem[i].dwFileLength);
+
+    fp = fopen(pstItem[i].vcFileName, "w");
+    if (fp == NULL) {
+      kPrintf("%s File Create Fail\n");
+      return;
+    }
+
+    if (fwrite((BYTE *)qwDataAddress, 1, pstItem[i].dwFileLength, fp) !=
+        pstItem[i].dwFileLength) {
+      kPrintf("Write Fail\n");
+
+      fclose(fp);
+      kFlushFileSystemCache();
+
+      return;
+    }
+
+    fclose(fp);
+
+    qwDataAddress += pstItem[i].dwFileLength;
+  }
+
+  kPrintf("Package Install Complete\n");
+
+  kFlushFileSystemCache();
 }

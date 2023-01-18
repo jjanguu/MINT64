@@ -21,6 +21,17 @@ typedef struct kParameterListStruct {
   int iCurrentPosition;
 } PARAMETERLIST;
 
+typedef struct PackageItemStruct {
+  char vcFileName[24];
+  DWORD dwFileLength;
+} PACKAGEITEM;
+
+typedef struct PackageHeaderStruct {
+  char vcSignature[16];
+  DWORD dwHeaderSize;
+  PACKAGEITEM vstItem[0];
+} PACKAGEHEADER;
+
 #pragma pack(pop)
 void kStartConsoleShell();
 QWORD kRandom();
@@ -77,3 +88,4 @@ static void kChangeTaskAffinity(const char *pcParameterBuffer);
 static void kShowVBEModeInfo(const char *pcParameterBuffer);
 static void kTestSystemCall(const char *pcParameterBuffer);
 static void kExecuteApplicationProgram(const char *pcParameterBuffer);
+static void kInstallPackage(const char *pcParameterBuffer);
