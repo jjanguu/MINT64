@@ -9,7 +9,7 @@ int Main(char *pcArgument) {
   QWORD qwWindowID;
   EVENT stEvent;
   QWORD qwLastTickCount;
-  char *pcStartMessage = "Please LButton Down To Start~!";
+  char *pcStartMessage = "Please LButton Down To Start";
   POINT stMouseXY;
   RECT stScreenArea;
   int iX;
@@ -97,7 +97,7 @@ int Main(char *pcArgument) {
         g_stGameInfo.bGameStart = FALSE;
 
         DrawText(qwWindowID, 80, 130, RGB(255, 255, 255), RGB(0, 0, 0),
-                 "Game Over~!!!", 13);
+                 "Game Over", 13);
         DrawText(qwWindowID, 5, 150, RGB(255, 255, 255), RGB(0, 0, 0),
                  pcStartMessage, strlen(pcStartMessage));
       }

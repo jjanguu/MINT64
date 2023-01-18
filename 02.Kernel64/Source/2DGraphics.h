@@ -35,6 +35,14 @@ void kInternalDrawText(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
                        int iX, int iY, COLOR stTextColor,
                        COLOR stBackgroundColor, const char *pcString,
                        int iLength);
+void kInternalDrawEnglishText(const RECT *pstMemoryArea,
+                              COLOR *pstMemoryAddress, int iX, int iY,
+                              COLOR stTextColor, COLOR stBackgroundColor,
+                              const char *pcString, int iLength);
+void kInternalDrawHangulText(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                             int iX, int iY, COLOR stTextColor,
+                             COLOR stBackgroundColor, const char *pcString,
+                             int iLength);
 inline BOOL kIsInRectangle(const RECT *pstArea, int iX, int iY);
 inline int kGetRectangleWidth(const RECT *pstArea);
 inline int kGetRectangleHeight(const RECT *pstArea);
